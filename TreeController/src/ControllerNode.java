@@ -9,9 +9,10 @@ import java.util.List;
 
 
 public class ControllerNode {
+	public String name;
 	public String parentAddress;
 	public List<String> childrenAddresses;
-	public List<GSwitch> switches;
+	public List<GSwitch> gswitches;
 	public List<Host> hosts;
 	public Graph topology;
 	public int port;
@@ -19,12 +20,73 @@ public class ControllerNode {
 	public String process(String command){
 		String result = "";
 		String[] tokens = command.split(" ");
+		if(tokens.length<3)
+			return "Wrong command! Try help";
 		if(tokens[0].equals("add")){
-			
+			if(tokens[1].equals("gswitch")){
+				String[] ports = tokens[2].split(":");
+				String[] hosts = tokens[3].split(":");
+				GSwitch gswitch = new GSwitch("gs"+String.valueOf(gswitches.size()+1), ports.length, ports, hosts);
+				gswitches.add(gswitch);
+				topology.addNode(gswitch.name);
+				for(int i=0;i<hosts.length;i++){
+					topology.addEdge(gswitch.name, hosts[i]);
+				}
+				result = "gs"+gswitch.name;
+			}else if(tokens[1].equals("host")){
+				Host host = new Host(tokens[2], tokens[3], tokens[4]);
+				hosts.add(host);
+				topology.addNode(host.name);
+				topology.addEdge(host.name, tokens[1]);
+				result = "Ok";
+			}else{
+				result = "Wrong command! Try help";
+			}
 		}else if(tokens[0].equals("remove")){
-			
+			if(tokens[1].equals("gswitch")){
+				for(int i=0;i<gswitches.size();i++){
+					if(gswitches.get(i).name.equals(tokens[2])){
+						gswitches.remove(i);
+					}
+				}
+				topology.deleteNode(tokens[2]);
+				result = "Ok";
+			}else if(tokens[1].equals("host")){
+				String hostname = "";
+				for(int i=0;i<hosts.size();i++){
+					if(hosts.get(i).mac==tokens[2]){
+						hosts.remove(i);
+						hostname = hosts.get(i).name;
+					}
+				}
+				topology.deleteNode(hostname);
+				result = "Ok";
+			}else{
+				result = "Wrong command! Try help";
+			}
 		}else if(tokens[0].equals("getport")){
-			
+			String hostname = "";
+			if(tokens[1].equals("mac")){
+				for(int i=0;i<hosts.size();i++){
+					if(hosts.get(i).mac.equals(tokens[2])){
+						hostname = hosts.get(i).name;
+						break;
+					}
+				}
+			}else{
+				for(int i=0;i<hosts.size();i++){
+					if(hosts.get(i).ip.equals(tokens[2])){
+						hostname = hosts.get(i).name;
+						break;
+					}
+				}
+			}
+			for(int i=0;i<gswitches.size();i++){
+				if(gswitches.get(i).name.equals(tokens[1])){
+					result = String.valueOf(gswitches.get(i).getPortsConnectedTo(topology.getNextHop(tokens[1], hostname)).get(0));
+					break;
+				}
+			}
 		}else{
 			result = "Wrong command! Try help";
 		}
@@ -67,22 +129,20 @@ public class ControllerNode {
 	public ControllerNode() throws IOException{
 		parentAddress = "";
 		childrenAddresses = new ArrayList<String>();
-		switches = new ArrayList<GSwitch>();
+		gswitches = new ArrayList<GSwitch>();
 		hosts = new ArrayList<Host>();
 		topology = new Graph();
 		port = 12091;
-		this.run();
 	}
 	
 	public ControllerNode(String configfilename) throws IOException{
 		parentAddress = "";
 		childrenAddresses = new ArrayList<String>();
-		switches = new ArrayList<GSwitch>();
+		gswitches = new ArrayList<GSwitch>();
 		hosts = new ArrayList<Host>();
 		topology = new Graph();
 		port = 12091;
 		parseConfigFile(configfilename);
-		this.run();
 	}
 	
 	private void parseConfigFile(String filename){

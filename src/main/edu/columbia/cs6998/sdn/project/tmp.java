@@ -160,10 +160,9 @@ public class tmp
     }
 
     public short getNextVirtualPort(Short portNum){
-         nextport.portCollection[nextport.next] = portNum;
+         nextport.portCollection[nextport.next++] = portNum;
          nextport.length++;
-         nextport.next++;
-         return (short) nextport.next;
+         return (short) (nextport.next - 1);
     }
 
 //    public boolean removeVirtualPort(Short vport){

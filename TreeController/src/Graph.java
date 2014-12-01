@@ -40,4 +40,8 @@ public class Graph {
 	public boolean isConnected(String nodeName1, String nodeName2){
 		return adjMap.get(nodeName1).contains(nodeName2);
 	}
+	
+	public String getNextHop(String src, String dest){
+		return src;
+	}
 }

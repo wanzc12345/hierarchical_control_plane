@@ -93,21 +93,27 @@ public class tmp
 */
     protected Map<Long, Long> blacklist;
     
-    //project
+    /**
+     * project:
+     *     the first short in Map<Short, Short> below is virtual port; Second short
+     *	represents realport number
+     *	this map is for getting real port numbers with virtual port
+     *	numbers are known
+     */
     Map<String, Map<Short, Short>> virtualPortToReal;
-    //the first short in Map<Short, Short> above is virtual port; Second short
-    //represents realport number
-    //this map is for getting real port numbers with virtual port
-    //numbers are known
-   
 
+   
+    /**
+     *      the first short in Map<Short, Short> below is realport; second
+     *	short is virtual port number. this map is for getting virtual
+     *	port numbers with real port numbers
+     *	for each controller
+     * 
+     */
     Map<String, Map<Short, Short>> realPortToVirtual;
-    // the first short in Map<Short, Short> above is realport; second
-    // short is virtual port number. this map is for getting virtual
-    // port numbers with real port numbers
-    //for each controller
-   // HashMap<Long, String> portToSwitchID;
-   // HashMap<String, Long> switchIDToPort;
+
+    HashMap<Long, String> portToSwitchID;
+    HashMap<String, Long> switchIDToPort;
     
     genPort nextport;
 
@@ -409,7 +415,9 @@ public class tmp
         int destIp = match.getNetworkDestination();
         Long switchId = sw.getId();
         Short inputPort = match.getInputPort();
-            
+        
+        List<Short> virtualPortList = this.virtualPortToReal.get(sw.getId());
+          
         if(!isFirstPacket) {
     		// get the virtual port for the packet and pass to the Parent Controller
            

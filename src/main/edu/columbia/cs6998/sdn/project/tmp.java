@@ -88,7 +88,16 @@ public class tmp
     
     //project
     Map<String, Map<Short, Short>> virtualPortToReal;
+    //the first short in Map<Short, Short> above is virtual port; Second short
+    //represents realport number
+    //this map is for getting real port numbers with virtual port
+    //numbers are known
+   
+
     Map<String, Map<Short, Short>> realPortToVirtual;
+    // the first short in Map<Short, Short> above is realport; second
+    // short is virtual port number. this map is for getting virtual
+    // port numbers with real port numbers
     //for each controller
    // HashMap<Long, String> portToSwitchID;
    // HashMap<String, Long> switchIDToPort;

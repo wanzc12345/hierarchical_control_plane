@@ -68,7 +68,7 @@ import org.openflow.util.LRULinkedHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Switch 
+public class tmp 
     implements IFloodlightModule, IOFMessageListener {
     protected static Logger log = LoggerFactory.getLogger(Switch.class);
     
@@ -85,8 +85,15 @@ public class Switch
     // Stores the MAC address of hosts to block: <Macaddr, blockedTime>
 */
     protected Map<Long, Long> blacklist;
-
     
+    //project
+    Map<String, Map<Short, Short>> virtualPortToReal;
+    Map<String, Map<Short, Short>> realPortToVirtual;
+    //for each controller
+   // HashMap<Long, String> portToSwitchID;
+   // HashMap<String, Long> switchIDToPort;
+    
+    genPort nextport;
 
     // flow-mod - for use in the cookie
     public static final int SWITCH_APP_ID = 10;
@@ -121,20 +128,67 @@ public class Switch
     public void setFloodlightProvider(IFloodlightProviderService floodlightProvider) {
         this.floodlightProvider = floodlightProvider;
     }
-     
-
- 
-    //add by Yuanhui
-    //
-    //controlller information
-
-    protected controllerInfo InfoTable;
-    protected QuerySwitch2 thisTable;
-
-    //    
+    
     @Override
     public String getName() {
         return "switch";
+    }
+
+    //project
+    public void buildAgent(Switch1 sw){
+          for(String sw1 : sw.dpid){
+              List<Short> list = sw.portOfSwitch.get(sw1);
+              Map<String, Short> switchConnection = sw.linkBetweenSwitch.get(sw1);
+              for(Short p : list){
+                  if(switchConnection.containsValue(p)) continue;
+                  short tmp = getNextVirtualPort(p);
+                  Map<Short, Short> map1;
+                  Map<Short, Short> map2;
+                  if(realPortToVirtual.containsKey(sw1)){
+                      map1 = realPortToVirtual.get(sw1);
+                  }
+                  else map1 = new HashMap<Short, Short>();
+                  if(virtualPortToReal.containsKey(sw1)){
+                      map2 = virtualPortToReal.get(sw1);
+                  }
+                  else map2 = new HashMap<Short, Short>();
+                  
+                  map1.put(p, tmp);
+                  map2.put(tmp, p);
+                  realPortToVirtual.put(sw1, map1);
+                  virtualPortToReal.put(sw1, map2);
+              }
+          }
+    }
+
+    public short getNextVirtualPort(Short portNum){
+         nextport.portCollection[nextport.next++] = portNum;
+         nextport.length++;
+         return (short) (nextport.next - 1);
+    }
+
+//    public boolean removeVirtualPort(Short vport){
+//         int num = int) vport;
+//         if(num > nextport.length - 1) return false;
+//         nextport.portCollection[num] = nextport.portCollection[nextport.length - 1];
+         //update map! save this method for later
+//         return true;
+//    } 
+
+    public short translate(IOFSwitch sw, OFPacketIn pi){
+         short inport = pi.getInPort();
+        // OFMatch match = new OFMatch();
+        // match.loadFromPacket(pi.getPacketData(), pi.getInPort());
+        // Long sourceMac = Ethernet.toLong(match.getDataLayerDestination());
+         short vport = realPortToVirtual.get(sw.getStringId()).get(inport);
+         return vport;
+    }
+    public short translate(IOFSwitch sw, short rport){
+         return realPortToVirtual.get(sw).get(rport);
+    }
+    
+    public short translateback(IOFSwitch sw, short vport){
+         return virtualPortToReal.get(sw.getStringId()).get(vport);
     }
 
     /**
@@ -353,7 +407,12 @@ public class Switch
         if (outPort == null) {
             // If we haven't learned the port for the dest MAC, flood it
             // CS6998: Fill out the following ????
-            this.writePacketOutForPacketIn(sw, pi, OFPort.OFPP_FLOOD.getValue());
+            //project:
+           short vport = translate(sw, pi);
+          // pi.setInPort(vport);
+           short vdestPort = getPort(destMac);
+           short rdestPort = translateback(sw, vdestPort);
+           this.writePacketOutForPacketIn(sw, pi, rdestPort);
         } else if (outPort == match.getInputPort()) {
             log.trace("ignoring packet that arrived on same port as learned destination:"
                     + " switch {} dest MAC {} port {}",
@@ -468,14 +527,9 @@ public class Switch
                 new ConcurrentHashMap<IOFSwitch, Map<Long, Short>>();
         blacklist =
                 new HashMap<Long, Long>();
-        thisTable = new QuerySwitch2(MAX_MACS_PER_SWITCH, 8080);
-        InfoTable = new controllerInfo();
-        thisTable.getSwitchID(InfoTable);
-        thisTable.getSwitchLinkInfo(InfoTable);
-        thisTable.getSwitchPortNum(InfoTable);
-        for (String key : thisTable.dpid) 
-        System.out.println(key);
-        
+        nextport = new genPort();
+        realPortToVirtual = new HashMap<String, Map<Short, Short>>();
+        virtualPortToReal = new HashMap<String, Map<Short, Short>>();
     }
 
     @Override
@@ -484,4 +538,22 @@ public class Switch
         //floodlightProvider.addOFMessageListener(OFType.FLOW_REMOVED, this);
         floodlightProvider.addOFMessageListener(OFType.ERROR, this);
     }
+    public short getPort(Long mac){
+        return 0;
+    }
+}
+class genPort{
+    Short [] portCollection;
+    int length;
+    int next;
+    public genPort(){
+      length = 0;
+      next = 0;
+      portCollection = new Short[100];
+    }
+}
+class Switch1{
+    protected ArrayList<String> dpid;
+    protected Map<String, Map<String, Short>> linkBetweenSwitch;
+    protected Map<String, List<Short>> portOfSwitch;
 }

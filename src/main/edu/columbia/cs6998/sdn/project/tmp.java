@@ -47,6 +47,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.floodlightcontroller.core.FloodlightContext;
@@ -410,13 +411,13 @@ public class tmp
      * @return
      */
     private Command processPacketInMessage(IOFSwitch sw, OFPacketIn pi, FloodlightContext cntx) {
-
+    	
+    	// Added by Adeyemi
 		List<Object> socketList = this.getSocketIO(null, this.PARENT_PORT);
 		Socket socket = (Socket) socketList.get(0);
 		BufferedReader in = (BufferedReader) socketList.get(1);
 		PrintWriter out = (PrintWriter) socketList.get(2);
 		
-		Short virtualPort = translate(sw, pi);
         OFMatch match = new OFMatch();
         match.loadFromPacket(pi.getPacketData(), pi.getInPort());
         
@@ -426,54 +427,45 @@ public class tmp
         int destIp = match.getNetworkDestination();
         Long switchId = sw.getId();
         Short inputPort = match.getInputPort();
-        
-        //List<Short> virtualPortList = this.virtualPortToReal.get(sw.getId());
-        
-    	//modified by Yuanhui
-    	if (isFirstPacket == true) {
-
-    	}
-          
+               
         if(isFirstPacket) {
     		// get the virtual port for the packet and pass to the Parent Controller
     		createControlTable();
     		getSwitchePort(sw);
+    		
+    		List<String> switchIdList = this.thisTable.controller.dpid;
+    		Set<Short> setOfAllVirtualPort = null;
+    		for(String id : switchIdList) {
+    			setOfAllVirtualPort.addAll(this.virtualPortToReal.get(id).keySet());   			
+    		}
+
+    		StringBuffer virtualPort = null;
+    		
+    		for(Short vPort: setOfAllVirtualPort) {
+    			virtualPort.append(vPort);
+    			virtualPort.append(":");
+    		}
+    		virtualPort.deleteCharAt(virtualPort.lastIndexOf(":"));
     		out.println("add gswitch " + virtualPort);
     		String response;
     		try {
 				while((response = in.readLine()) != null) {
 					this.GSWITCH_ID = response;
+					isFirstPacket = false;
 				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				System.out.println("Socket InputStream: There was a problem reading from the input stream");
 				e.printStackTrace();
+				isFirstPacket = true;
 			}
-    		finally {
-    			isFirstPacket = false;
-
-    		}
     	}
         
-        // check if the gswitch naming happened without errors; else make sure to get an ID
-    	while(this.GSWITCH_ID == null) {
-    		out.println("add gswitch " + virtualPort);
-    		String response;
-    		try {
-				while((response = in.readLine()) != null) {
-					this.GSWITCH_ID = response;
-				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				System.out.println("Socket InputStream: There was a problem reading from the input stream");
-				e.printStackTrace();
-			}
-    	}
-    	
     	/*
     	 * Get the device type from the parent
     	 * 
     	 */
+        Short virtualPort = this.translate(sw, pi);
         out.println("packetin " + this.GSWITCH_ID + " " + virtualPort + " " + sourceMac + " " + sourceIp);
     	String device = null;
 		try {
@@ -493,11 +485,33 @@ public class tmp
     	}
     	else {
     		out.println("packetin " + this.GSWITCH_ID + " " + virtualPort + " " + sourceMac + " " + sourceIp);
+    		// ask question about this
     	}
-    	
+
     	if(this.getFromPortMap(sw, destMac) == null) {
-    		out.println("getvport " + this.GSWITCH_ID + " ip " + destIp);
+    		out.println("getvport " + this.GSWITCH_ID + " mac " + destMac);
+    		String response;
+    		try {
+				while((response = in.readLine()) != null) {
+					if(response.equalsIgnoreCase("Flood")) {
+						// flood throughout subnet
+						this.writePacketOutForPacketIn(sw, pi, OFPort.OFPP_FLOOD.getValue());
+					} else if(response != null) {
+						// forward along path 
+						
+					}
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				System.out.println("Socket InputStream: There was a problem reading from the input stream");
+				e.printStackTrace();
+			}
     	}
+    	else if (this.getFromPortMap(sw, destMac) == match.getInputPort()) {
+            log.trace("ignoring packet that arrived on same port as learned destination:"
+                    + " switch {} dest MAC {} port {}",
+                    new Object[]{ sw, HexString.toHexString(destMac), this.getFromPortMap(sw, destMac) });
+        }
     	else {
     		Short outputPort = this.getFromPortMap(sw, destMac);
     		this.writePacketOutForPacketIn(sw, pi, outputPort);

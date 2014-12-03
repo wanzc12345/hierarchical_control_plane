@@ -145,13 +145,24 @@ public class tmp
     // time duration the firewall will block each node for
     protected static final int FIREWALL_BLOCK_TIME_DUR = (10 * 1000);
     
-    protected boolean isFirstPacket = false;
+    protected boolean isFirstPacket = true;
     
     protected static final int PARENT_PORT= 12091;
     
     protected static String GSWITCH_ID;
     
     protected Map<Long, Integer> hostIp;
+    
+    protected Map<String, ArrayList<Long>> switchPortList;
+    
+    protected static final String apiPort = "8080";
+    
+    //add by Yuanhui
+    //
+    //controlller information
+
+    //protected controllerInfo InfoTable;
+    protected QuerySwitch2 thisTable;
     
     /**
      * @param floodlightProvider the floodlightProvider to set
@@ -416,11 +427,17 @@ public class tmp
         Long switchId = sw.getId();
         Short inputPort = match.getInputPort();
         
-        List<Short> virtualPortList = this.virtualPortToReal.get(sw.getId());
+        //List<Short> virtualPortList = this.virtualPortToReal.get(sw.getId());
+        
+    	//modified by Yuanhui
+    	if (isFirstPacket == true) {
+
+    	}
           
-        if(!isFirstPacket) {
+        if(isFirstPacket) {
     		// get the virtual port for the packet and pass to the Parent Controller
-           
+    		createControlTable();
+    		getSwitchePort(sw);
     		out.println("add gswitch " + virtualPort);
     		String response;
     		try {
@@ -432,11 +449,10 @@ public class tmp
 				System.out.println("Socket InputStream: There was a problem reading from the input stream");
 				e.printStackTrace();
 			}
-/*    		finally {
-    			socket.close();
-    			in.close();
-    			out.close();
-    		}*/
+    		finally {
+    			isFirstPacket = false;
+
+    		}
     	}
         
         // check if the gswitch naming happened without errors; else make sure to get an ID
@@ -453,6 +469,11 @@ public class tmp
 				e.printStackTrace();
 			}
     	}
+    	
+    	/*
+    	 * Get the device type from the parent
+    	 * 
+    	 */
         out.println("packetin " + this.GSWITCH_ID + " " + virtualPort + " " + sourceMac + " " + sourceIp);
     	String device = null;
 		try {
@@ -488,17 +509,7 @@ public class tmp
 */
         this.addToPortMap(sw, sourceMac, pi.getInPort());
        
-/* CS6998: Do works here to implement super firewall
-        Hint: You may check connection limitation here.
-        ....
-*/
 
-/* CS6998: Filter-out hosts in blacklist
- *         Also, when the host is in blacklist check if the blockout time is
- *         expired and handle properly
-        if (....)
-            return Command.CONTINUE;
-*/
 
 /* CS6998: Ask the switch to flood the packet to all of its ports
  *         Thus, this module currently works as a dummy hub
@@ -638,6 +649,8 @@ public class tmp
         virtualPortToReal = new HashMap<String, Map<Short, Short>>();
         this.GSWITCH_ID = null;
         hostIp = new ConcurrentHashMap<Long, Integer>();
+    	switchPortList = new HashMap<String, ArrayList<Long>>();
+        thisTable = new QuerySwitch2(MAX_MACS_PER_SWITCH, apiPort);
     }
 
     @Override
@@ -694,6 +707,37 @@ public class tmp
     	this.hostIp.put(switchId, hostIp);
     }
     
+	//modified by Yuanhui
+    private void createControlTable() {
+		try {
+        	System.out.println("get switch 10D");
+        	thisTable.getSwitchID();
+       	 	System.out.println("info");
+       	 	} catch(IOException e) {}
+        	try {
+        	System.out.println("get switch link info");
+        	thisTable.getSwitchLinkInfo();
+        	} catch(IOException e) {}
+        	try {
+        	System.out.println("getSwitchPortNum");
+        	thisTable.getSwitchPortNum();
+        	} catch(IOException e) {}
+	}
+
+    private void getSwitchePort(IOFSwitch sw) {
+		for (String key : thisTable.controller.portOfSwitches.keySet()) {
+			System.out.println(key);
+	    		ArrayList<Short> tmp = thisTable.controller.portOfSwitches.get(key);
+	    		ArrayList<Long> macSet = new ArrayList<Long>();
+			for (short portNum : tmp) {
+				System.out.println(portNum);
+				System.out.printf(sw.getPort(portNum).getHardwareAddress());
+				macSet.add(Ethernet.toLong(sw.getPort(portNum).getHardwareAddress()));		
+			}			
+			switchPortList.put(key, macSet);
+	        }
+
+	}
 }
 
 class genPort{

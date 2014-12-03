@@ -180,7 +180,9 @@ public class tmp
     public void buildAgent(Switch1 sw){
           for(String sw1 : sw.dpid){
               List<Short> list = sw.portOfSwitch.get(sw1);
+              Map<String, Short> map = sw.linkBetweenSwitch.get(sw1);
               for(Short p : list){
+                  if(map.containsValue(p)) continue;
                   short tmp = getNextVirtualPort(p);
                   Map<Short, Short> map1;
                   Map<Short, Short> map2;
@@ -752,5 +754,6 @@ class genPort{
 }
 class Switch1{
     protected ArrayList<String> dpid;
+    protected Map<String, Map<String, Short>> linkBetweenSwitch;
     protected Map<String, List<Short>> portOfSwitch;
 }

@@ -121,7 +121,17 @@ public class Switch
     public void setFloodlightProvider(IFloodlightProviderService floodlightProvider) {
         this.floodlightProvider = floodlightProvider;
     }
-    
+     
+
+ 
+    //add by Yuanhui
+    //
+    //controlller information
+
+    protected controllerInfo InfoTable;
+    protected QuerySwitch2 thisTable;
+
+    //    
     @Override
     public String getName() {
         return "switch";
@@ -458,7 +468,14 @@ public class Switch
                 new ConcurrentHashMap<IOFSwitch, Map<Long, Short>>();
         blacklist =
                 new HashMap<Long, Long>();
-
+        thisTable = new QuerySwitch2(MAX_MACS_PER_SWITCH, 8080);
+        InfoTable = new controllerInfo();
+        thisTable.getSwitchID(InfoTable);
+        thisTable.getSwitchLinkInfo(InfoTable);
+        thisTable.getSwitchPortNum(InfoTable);
+        for (String key : thisTable.dpid) 
+        System.out.println(key);
+        
     }
 
     @Override

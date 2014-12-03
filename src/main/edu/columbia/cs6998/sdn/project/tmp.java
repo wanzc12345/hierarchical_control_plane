@@ -31,7 +31,14 @@
 
 package edu.columbia.cs6998.sdn.project;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -122,6 +129,15 @@ public class tmp
 
     // time duration the firewall will block each node for
     protected static final int FIREWALL_BLOCK_TIME_DUR = (10 * 1000);
+    
+    protected boolean isFirstPacket = false;
+    
+    protected static final int PARENT_PORT= 12091;
+    
+    protected static String GSWITCH_ID;
+    
+    protected Map<Long, Integer> hostIp;
+    
     /**
      * @param floodlightProvider the floodlightProvider to set
      */
@@ -138,9 +154,7 @@ public class tmp
     public void buildAgent(Switch1 sw){
           for(String sw1 : sw.dpid){
               List<Short> list = sw.portOfSwitch.get(sw1);
-              Map<String, Short> switchConnection = sw.linkBetweenSwitch.get(sw1);
               for(Short p : list){
-                  if(switchConnection.containsValue(p)) continue;
                   short tmp = getNextVirtualPort(p);
                   Map<Short, Short> map1;
                   Map<Short, Short> map2;
@@ -371,11 +385,86 @@ public class tmp
      */
     private Command processPacketInMessage(IOFSwitch sw, OFPacketIn pi, FloodlightContext cntx) {
 
-        // Read in packet data headers by using OFMatch
+		List<Object> socketList = this.getSocketIO(null, this.PARENT_PORT);
+		Socket socket = (Socket) socketList.get(0);
+		BufferedReader in = (BufferedReader) socketList.get(1);
+		PrintWriter out = (PrintWriter) socketList.get(2);
+		
+		Short virtualPort = translate(sw, pi);
         OFMatch match = new OFMatch();
         match.loadFromPacket(pi.getPacketData(), pi.getInPort());
+        
         Long sourceMac = Ethernet.toLong(match.getDataLayerSource());
-        Long destMac = Ethernet.toLong(match.getDataLayerDestination());
+        Long destMac = Ethernet.toLong(match.getDataLayerDestination());        
+        int sourceIp = match.getNetworkSource();
+        int destIp = match.getNetworkDestination();
+        Long switchId = sw.getId();
+        Short inputPort = match.getInputPort();
+            
+        if(!isFirstPacket) {
+    		// get the virtual port for the packet and pass to the Parent Controller
+           
+    		out.println("add gswitch " + virtualPort);
+    		String response;
+    		try {
+				while((response = in.readLine()) != null) {
+					this.GSWITCH_ID = response;
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				System.out.println("Socket InputStream: There was a problem reading from the input stream");
+				e.printStackTrace();
+			}
+/*    		finally {
+    			socket.close();
+    			in.close();
+    			out.close();
+    		}*/
+    	}
+        
+        // check if the gswitch naming happened without errors; else make sure to get an ID
+    	while(this.GSWITCH_ID == null) {
+    		out.println("add gswitch " + virtualPort);
+    		String response;
+    		try {
+				while((response = in.readLine()) != null) {
+					this.GSWITCH_ID = response;
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				System.out.println("Socket InputStream: There was a problem reading from the input stream");
+				e.printStackTrace();
+			}
+    	}
+        out.println("packetin " + this.GSWITCH_ID + " " + virtualPort + " " + sourceMac + " " + sourceIp);
+    	String device = null;
+		try {
+			while((device = in.readLine()) != null) {
+				
+			}
+		} catch (IOException e) {
+			System.out.println("Socket InputStream: There was a problem reading from the input stream");
+			e.printStackTrace();
+		}
+    	if("Switch".equalsIgnoreCase(device)) {
+    		// do not store packet Ip
+    	}
+    	else if("Host".equalsIgnoreCase(device)) {
+    		this.learnHostIp(switchId, sourceIp);
+    		this.addToPortMap(sw, sourceMac, inputPort);
+    	}
+    	else {
+    		out.println("packetin " + this.GSWITCH_ID + " " + virtualPort + " " + sourceMac + " " + sourceIp);
+    	}
+    	
+    	if(this.getFromPortMap(sw, destMac) == null) {
+    		out.println("getvport " + this.GSWITCH_ID + " ip " + destIp);
+    	}
+    	else {
+    		Short outputPort = this.getFromPortMap(sw, destMac);
+    		this.writePacketOutForPacketIn(sw, pi, outputPort);
+    	}
+    	
 
 /* CS6998: Do works here to learn the port for this MAC
         ....
@@ -530,6 +619,8 @@ public class tmp
         nextport = new genPort();
         realPortToVirtual = new HashMap<String, Map<Short, Short>>();
         virtualPortToReal = new HashMap<String, Map<Short, Short>>();
+        this.GSWITCH_ID = null;
+        hostIp = new ConcurrentHashMap<Long, Integer>();
     }
 
     @Override
@@ -541,7 +632,53 @@ public class tmp
     public short getPort(Long mac){
         return 0;
     }
+    
+    /**
+     * 
+     * @param host: InetAddress of the Parent Controller, null if localhost
+     * @param port: Port Parent Controller listens on
+     * @return List of objects with the indexes corresponding to
+     * 	0: Socket
+     *  1: BufferedReader
+     *  2: PrintWriter
+     */
+    public List<Object> getSocketIO(InetAddress host, int port) {
+    	host = (host != null) ? host : Inet4Address.getLoopbackAddress();
+
+        Socket commandSocket = null;
+        PrintWriter out = null;
+        BufferedReader in = null;
+		try {
+			commandSocket = new Socket(host, port);
+			out =
+			    new PrintWriter(commandSocket.getOutputStream(), true);
+			in =
+			    new BufferedReader(
+			        new InputStreamReader(commandSocket.getInputStream()));
+		} catch (IOException e) {
+			System.out.println("Couldn't get I/O for the connection to " +
+            host);
+			System.exit(1);
+		}
+		
+		List<Object> socketDetails = new ArrayList<Object>();
+		socketDetails.add(0, commandSocket);	
+		socketDetails.add(1, in);
+		socketDetails.add(2, out);
+		return socketDetails;
+    }
+    
+    /**
+     * 
+     * @param switchId: the Switch Id on the packetIn message (switch connected to the controller enroute to the host
+     * @param hostIp The Ip address of the host, which is the source Ip of the packet In message
+     */
+    public void learnHostIp(Long switchId, int hostIp) {
+    	this.hostIp.put(switchId, hostIp);
+    }
+    
 }
+
 class genPort{
     Short [] portCollection;
     int length;
@@ -554,6 +691,5 @@ class genPort{
 }
 class Switch1{
     protected ArrayList<String> dpid;
-    protected Map<String, Map<String, Short>> linkBetweenSwitch;
     protected Map<String, List<Short>> portOfSwitch;
 }

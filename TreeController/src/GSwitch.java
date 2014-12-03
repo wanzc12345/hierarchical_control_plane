@@ -9,19 +9,19 @@ public class GSwitch {
 	public HashMap<Integer, String> portHostMap;
 	public HashMap<String, ArrayList<Integer>> hostPortsMap;
 	
-	public GSwitch(String n, int c, String[] ports, String[] hosts){
+	public GSwitch(String n, int c, String[] ports){
 		name = n;
 		portCount = c;
 		portHostMap = new HashMap<Integer, String>();
 		hostPortsMap = new HashMap<String, ArrayList<Integer>>();
-		for(int i=0;i<c;i++){
-			portHostMap.put(Integer.parseInt(ports[i]), hosts[i]);
-			if(!hostPortsMap.containsKey(hosts[i])){
-				hostPortsMap.get(hosts[i]).add(Integer.parseInt(ports[i]));
-			}else{
-				hostPortsMap.put(hosts[i], new ArrayList<Integer>());
-			}
-		}
+//		for(int i=0;i<c;i++){
+//			portHostMap.put(Integer.parseInt(ports[i]), hosts[i]);
+//			if(!hostPortsMap.containsKey(hosts[i])){
+//				hostPortsMap.get(hosts[i]).add(Integer.parseInt(ports[i]));
+//			}else{
+//				hostPortsMap.put(hosts[i], new ArrayList<Integer>());
+//			}
+//		}
 	}
 	
 	public boolean addLink(int port, String name){

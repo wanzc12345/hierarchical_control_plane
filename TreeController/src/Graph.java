@@ -5,7 +5,7 @@ import java.util.HashSet;
 public class Graph {
 	public int V;
 	public int E;
-	public HashMap<String, HashSet<String>> adjMap; //e.g "s1"->["s2","h1"]
+	public HashMap<String, HashSet<String>> adjMap; //e.g "s1"->["1:s2","2:h1"]
 	
 	public Graph(){
 		V = 0;

@@ -1,4 +1,4 @@
-package edu.columbia.cs6998.sdn.hw1;
+package edu.columbia.cs6998.sdn.project;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -111,6 +111,16 @@ public class Graph {
 				}
 			}
 	}	
+	
+	public short getNextHopPort(String src, String des) {
+
+		Map<String, Short> conn = connectMap.get(src);
+		if (conn != null) {
+			if (conn.containsKey(des)) return conn.get(des); 
+		}
+
+		return -1;
+	}
 
 
 	/*

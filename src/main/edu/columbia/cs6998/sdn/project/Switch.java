@@ -71,6 +71,7 @@ import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFType;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionOutput;
+import org.openflow.protocol.action.OFActionDataLayerSource;
 import org.openflow.util.HexString;
 import org.openflow.util.LRULinkedHashMap;
 import org.slf4j.Logger;
@@ -304,7 +305,7 @@ public class Switch
      * @param outPort The switch port to output it to.
      */
     private void writeFlowMod(IOFSwitch sw, short command, int bufferId,
-            OFMatch match, short outPort) {
+            OFMatch match, short outPort, long switchId) {
         // from openflow 1.0 spec - need to set these on a struct ofp_flow_mod:
         // struct ofp_flow_mod {
         //    struct ofp_header header;
@@ -346,8 +347,8 @@ public class Switch
         // uint16_t max_len; /* Max length to send to controller. */
         // type/len are set because it is OFActionOutput,
         // and port, max_len are arguments to this constructor
-        flowMod.setActions(Arrays.asList((OFAction) new OFActionOutput(outPort, (short) 0xffff)));
-        flowMod.setLength((short) (OFFlowMod.MINIMUM_LENGTH + OFActionOutput.MINIMUM_LENGTH));
+        flowMod.setActions(Arrays.asList((OFAction) new OFActionOutput(outPort, (short) 0xffff), (OFAction) new OFActionDataLayerSource(Ethernet.toByteArray(switchId))));
+        flowMod.setLength((short) (OFFlowMod.MINIMUM_LENGTH + OFActionOutput.MINIMUM_LENGTH + OFActionDataLayerSource.MINIMUM_LENGTH));
 
         if (log.isTraceEnabled()) {
             log.trace("{} {} flow mod {}", 

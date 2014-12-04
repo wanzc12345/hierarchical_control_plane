@@ -1,4 +1,5 @@
-package edu.columbia.cs6998.sdn.project;
+package edu.columbia.cs6998.sdn.hw1;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,6 +12,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+
+
 /**
  * @author ubuntu
  *
@@ -21,6 +24,7 @@ public class QuerySwitch2 {
 	String restApiPort;
 	int MAX_LINKED_SWITCHES;
     controllerInfo controller = new controllerInfo();
+	Graph localSwitchGraph = new Graph();
 
     public QuerySwitch2(int maxSwitchNum, String apiPort) {
         restApiPort = apiPort;
@@ -29,7 +33,6 @@ public class QuerySwitch2 {
 
 	public void getSwitchID () throws IOException {
 		String httpURL = "http://localhost:" + restApiPort + "/wm/core/controller/switches/json";
-		
 	    URL myurlSwitch = new URL(httpURL);
 
 	    HttpURLConnection connection = (HttpURLConnection)myurlSwitch.openConnection();
@@ -45,8 +48,9 @@ public class QuerySwitch2 {
 	    {
 	      String arg[] = inputLine.split("dpid\":\"");      
 	      for (int i = 1; i < arg.length; i++) {
-	    	  controller.dpid.add(arg[i].substring(0, 23));   	   
- 
+	    	  localSwitchGraph.addNode(arg[i].substring(0, 23));
+	    	  controller.dpid.add(arg[i].substring(0, 23));   	
+	    	  
           }
 	    }
 	    bufferedRead.close();
@@ -54,6 +58,7 @@ public class QuerySwitch2 {
 	
 	//get all link information of switches
 	public void getSwitchLinkInfo() throws IOException{
+		
 		String httpURL = "http://localhost:" + restApiPort + "/wm/topology/links/json";
 	    URL myurlSwitchLink = new URL(httpURL);
 	    HttpURLConnection connection = (HttpURLConnection)myurlSwitchLink.openConnection();
@@ -75,11 +80,14 @@ public class QuerySwitch2 {
 	    	  if (swMap == null) {
 	    		  swMap = new HashMap<String, Short>();
 	    		  swMap.put((String) arg[i].subSequence(71, 94), Short.parseShort(s[0]));  
-	    		  controller.linkBetweenSwitch.put((String) arg[i].subSequence(0, 23), swMap);	  
-	    	  }  	  
-	    	  swMap.put((String) arg[i].subSequence(71, 94), Short.parseShort(s[0]));    	  
+	    		  //controller.linkBetweenSwitch.put((String) arg[i].subSequence(0, 23), swMap);	  
+	    	  }  	
+	    	  else
+	    		  swMap.put((String) arg[i].subSequence(71, 94), Short.parseShort(s[0]));    
+	    	  localSwitchGraph.addEdge((String)arg[i].subSequence(0, 23), (String) arg[i].subSequence(71, 94), Short.parseShort(s[0]));
 	      }
 	    }
+	   localSwitchGraph.buildConnectInfo(controller.dpid);
 	     
 	    bufferedRead.close();
 	}
@@ -112,38 +120,5 @@ public class QuerySwitch2 {
 	    }
 	    bufferedRead.close();
 	}	
-	
-	public void init() {
-		
-	}
-	
-	/*
-	public static void main(String[] args) throws IOException {    
-	    QuerySwitch2 rst = new QuerySwitch2();
-	    rst.getSwitchID();
-	    rst.getSwitchLinkInfo();
-	    rst.getSwitchPortNum();	 
-	    
-	    /*
-	    for (String key : controller.portOfSwitches.keySet()) {
-	    	ArrayList<Short> tmpp = controller.portOfSwitches.get(key);
-	    	System.out.println(key);
-	    	for (Short ket : tmpp) {
-	    		System.out.println(ket);
-	    	}
-	    }
-	    */
-	    
-	    
-	    //for test
-	    /*
-	    for (int i = 0; i < controller.dpid.size(); i++) {
-	    	System.out.println(controller.dpid.get(i));
-	    }
-	    
-	    
-	    //System.out.println(controller.linkBetweenSwitch.get("00:00:00:00:00:00:00:02").get("00:00:00:00:00:00:00:03"));
-	    
-	}
-	*/
+
 }

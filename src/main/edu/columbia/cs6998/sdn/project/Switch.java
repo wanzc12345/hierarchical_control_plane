@@ -522,7 +522,7 @@ public class Switch
 				            this.writeFlowMod(sw, OFFlowMod.OFPFC_ADD, pi.getBufferId(), match, Short.parseShort(argSwitchPort[1]), sw.getId());
 						}
 						else {
-							Short outputPort = this.getNextHopPort(sw.getStringId(), swId);
+							Short outputPort = this.thisTable.localSwitchGraph.getNextHopPort(sw.getStringId(), swId);
 							match.setWildcards(((Integer)sw.getAttribute(IOFSwitch.PROP_FASTWILDCARDS)).intValue()
 						    		& ~OFMatch.OFPFW_DL_DST
 						    		& ~OFMatch.OFPFW_NW_DST_MASK);
@@ -737,6 +737,8 @@ public class Switch
 	        }
 
 	}
+    
+    
 }
 
 class genPort{

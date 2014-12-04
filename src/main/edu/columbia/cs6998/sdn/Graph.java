@@ -111,16 +111,6 @@ public class Graph {
 				}
 			}
 	}	
-	
-	public short getNextHopPort(String src, String des) {
-
-		Map<String, Short> conn = connectMap.get(src);
-		if (conn != null) {
-			if (conn.containsKey(des)) return conn.get(des); 
-		}
-
-		return -1;
-	}
 
 
 	/*

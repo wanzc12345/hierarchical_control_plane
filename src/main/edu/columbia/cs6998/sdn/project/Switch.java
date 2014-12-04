@@ -209,7 +209,7 @@ public class Switch
                   s = sw1 + " " + Short.toString(p);
                   realPortToVirtual.put(sw1, map1);
                   virtualPortToReal.put(sw1, map2);
-                  vportToRport(tmp, s);
+                  vportToRport.put(tmp, s);
               }
           }
     }

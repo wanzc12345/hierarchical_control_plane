@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 
 
 public class GSwitch {
@@ -8,20 +8,16 @@ public class GSwitch {
 	public int portCount;
 	public HashMap<Integer, String> portHostMap;
 	public HashMap<String, ArrayList<Integer>> hostPortsMap;
+	public HashSet<String> switchIdSet;
 	
-	public GSwitch(String n, int c, String[] ports){
+	public GSwitch(String n, int c, String[] ports, String[] switchIds){
 		name = n;
 		portCount = c;
 		portHostMap = new HashMap<Integer, String>();
 		hostPortsMap = new HashMap<String, ArrayList<Integer>>();
-//		for(int i=0;i<c;i++){
-//			portHostMap.put(Integer.parseInt(ports[i]), hosts[i]);
-//			if(!hostPortsMap.containsKey(hosts[i])){
-//				hostPortsMap.get(hosts[i]).add(Integer.parseInt(ports[i]));
-//			}else{
-//				hostPortsMap.put(hosts[i], new ArrayList<Integer>());
-//			}
-//		}
+		switchIdSet = new HashSet<String>();
+		for(String sid : switchIds)
+			switchIdSet.add(sid);
 	}
 	
 	public boolean addLink(int port, String name){

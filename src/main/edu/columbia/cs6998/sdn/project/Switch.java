@@ -182,9 +182,10 @@ public class Switch
     }
 
     //project
-    public void buildAgent(Switch1 sw){
+    public void buildAgent(){
+          controllerInfo sw = thisTable.controller;
           for(String sw1 : sw.dpid){
-              List<Short> list = sw.portOfSwitch.get(sw1);
+              List<Short> list = sw.portOfSwitches.get(sw1);
               Map<String, Short> map = sw.linkBetweenSwitch.get(sw1);
               for(Short p : list){
                   if(map.containsValue(p)) continue;
@@ -438,6 +439,7 @@ public class Switch
         if(isFirstPacket) {
     		// get the virtual port for the packet and pass to the Parent Controller
     		createControlTable();
+                buildAgent();
     		getSwitchePort(sw);
     		
     		List<String> switchIdList = this.thisTable.controller.dpid;
@@ -700,6 +702,7 @@ public class Switch
         	System.out.println("getSwitchPortNum");
         	thisTable.getSwitchPortNum();
         	} catch(IOException e) {}
+           //     buildAgent();
 	}
 
     private void getSwitchePort(IOFSwitch sw) {

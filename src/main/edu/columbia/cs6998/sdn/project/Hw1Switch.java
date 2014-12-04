@@ -31,14 +31,7 @@
 
 package edu.columbia.cs6998.sdn.project;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -47,7 +40,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.floodlightcontroller.core.FloodlightContext;
@@ -76,7 +68,7 @@ import org.openflow.util.LRULinkedHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class tmp 
+public class Hw1Switch 
     implements IFloodlightModule, IOFMessageListener {
     protected static Logger log = LoggerFactory.getLogger(Switch.class);
     
@@ -87,36 +79,14 @@ public class tmp
     // Stores the learned state for each switch
 */
     protected Map<IOFSwitch, Map<Long, Short>> macToSwitchPortMap;
-
+   
 
 /* CS6998: data structures for the firewall feature
     // Stores the MAC address of hosts to block: <Macaddr, blockedTime>
 */
     protected Map<Long, Long> blacklist;
+    protected Map<String, ArrayList<Long>> switchPortList;
     
-    /**
-     * project:
-     *     the first short in Map<Short, Short> below is virtual port; Second short
-     *	represents realport number
-     *	this map is for getting real port numbers with virtual port
-     *	numbers are known
-     */
-    Map<String, Map<Short, Short>> virtualPortToReal;
-
-   
-    /**
-     *      the first short in Map<Short, Short> below is realport; second
-     *	short is virtual port number. this map is for getting virtual
-     *	port numbers with real port numbers
-     *	for each controller
-     * 
-     */
-    Map<String, Map<Short, Short>> realPortToVirtual;
-
-    HashMap<Long, String> portToSwitchID;
-    HashMap<String, Long> switchIDToPort;
-    
-    genPort nextport;
 
     // flow-mod - for use in the cookie
     public static final int SWITCH_APP_ID = 10;
@@ -145,93 +115,30 @@ public class tmp
 
     // time duration the firewall will block each node for
     protected static final int FIREWALL_BLOCK_TIME_DUR = (10 * 1000);
-    
-    protected boolean isFirstPacket = true;
-    
-    protected static final int PARENT_PORT= 12091;
-    
-    protected static String GSWITCH_ID;
-    
-    protected Map<Long, Integer> hostIp;
-    
-    protected Map<String, ArrayList<Long>> switchPortList;
+    /**
+     * @param floodlightProvider the floodlightProvider to set
+     */
     
     protected static final String apiPort = "8080";
-    
+    boolean first = true;
+
+    public void setFloodlightProvider(IFloodlightProviderService floodlightProvider) {
+        this.floodlightProvider = floodlightProvider;
+    }
+     
+
+ 
     //add by Yuanhui
     //
     //controlller information
 
     //protected controllerInfo InfoTable;
     protected QuerySwitch2 thisTable;
-    
-    /**
-     * @param floodlightProvider the floodlightProvider to set
-     */
-    public void setFloodlightProvider(IFloodlightProviderService floodlightProvider) {
-        this.floodlightProvider = floodlightProvider;
-    }
-    
+
+    //    
     @Override
     public String getName() {
         return "switch";
-    }
-
-    //project
-    public void buildAgent(Switch1 sw){
-          for(String sw1 : sw.dpid){
-              List<Short> list = sw.portOfSwitch.get(sw1);
-              Map<String, Short> map = sw.linkBetweenSwitch.get(sw1);
-              for(Short p : list){
-                  if(map.containsValue(p)) continue;
-                  short tmp = getNextVirtualPort(p);
-                  Map<Short, Short> map1;
-                  Map<Short, Short> map2;
-                  if(realPortToVirtual.containsKey(sw1)){
-                      map1 = realPortToVirtual.get(sw1);
-                  }
-                  else map1 = new HashMap<Short, Short>();
-                  if(virtualPortToReal.containsKey(sw1)){
-                      map2 = virtualPortToReal.get(sw1);
-                  }
-                  else map2 = new HashMap<Short, Short>();
-                  
-                  map1.put(p, tmp);
-                  map2.put(tmp, p);
-                  realPortToVirtual.put(sw1, map1);
-                  virtualPortToReal.put(sw1, map2);
-              }
-          }
-    }
-
-    public short getNextVirtualPort(Short portNum){
-         nextport.portCollection[nextport.next++] = portNum;
-         nextport.length++;
-         return (short) (nextport.next - 1);
-    }
-
-//    public boolean removeVirtualPort(Short vport){
-//         int num = int) vport;
-//         if(num > nextport.length - 1) return false;
-//         nextport.portCollection[num] = nextport.portCollection[nextport.length - 1];
-         //update map! save this method for later
-//         return true;
-//    } 
-
-    public short translate(IOFSwitch sw, OFPacketIn pi){
-         short inport = pi.getInPort();
-        // OFMatch match = new OFMatch();
-        // match.loadFromPacket(pi.getPacketData(), pi.getInPort());
-        // Long sourceMac = Ethernet.toLong(match.getDataLayerDestination());
-         short vport = realPortToVirtual.get(sw.getStringId()).get(inport);
-         return vport;
-    }
-    public short translate(IOFSwitch sw, short rport){
-         return realPortToVirtual.get(sw).get(rport);
-    }
-    
-    public short translateback(IOFSwitch sw, short vport){
-         return virtualPortToReal.get(sw.getStringId()).get(vport);
     }
 
     /**
@@ -403,6 +310,38 @@ public class tmp
         }
     }
     
+	//modified by Yuanhui
+    private void createControlTable() {
+		try {
+        	System.out.println("get switch 10D");
+        	thisTable.getSwitchID();
+       	 	System.out.println("info");
+       	 	} catch(IOException e) {}
+        	try {
+        	System.out.println("get switch link info");
+        	thisTable.getSwitchLinkInfo();
+        	} catch(IOException e) {}
+        	try {
+        	System.out.println("getSwitchPortNum");
+        	thisTable.getSwitchPortNum();
+        	} catch(IOException e) {}
+		first = false;
+	}
+
+    private void getSwitchePort(IOFSwitch sw) {
+		for (String key : thisTable.controller.portOfSwitches.keySet()) {
+			System.out.println(key);
+	    		ArrayList<Short> tmp = thisTable.controller.portOfSwitches.get(key);
+	    		ArrayList<Long> macSet = new ArrayList<Long>();
+			for (short portNum : tmp) {
+				System.out.println(portNum);
+				System.out.printf("",sw.getPort(portNum).getHardwareAddress());
+				macSet.add(Ethernet.toLong(sw.getPort(portNum).getHardwareAddress()));		
+			}			
+			switchPortList.put(key, macSet);
+	        }
+
+	}
     /**
      * Processes a OFPacketIn message. If the switch has learned the MAC to port mapping
      * for the pair it will write a FlowMod for. If the mapping has not been learned the 
@@ -413,119 +352,40 @@ public class tmp
      * @return
      */
     private Command processPacketInMessage(IOFSwitch sw, OFPacketIn pi, FloodlightContext cntx) {
-    	
-    	// Added by Adeyemi
-		List<Object> socketList = this.getSocketIO(null, this.PARENT_PORT);
-		Socket socket = (Socket) socketList.get(0);
-		BufferedReader in = (BufferedReader) socketList.get(1);
-		PrintWriter out = (PrintWriter) socketList.get(2);
-		
+
+
+	//modified by Yuanhui
+	if (first == true) {
+		createControlTable();
+		getSwitchePort(sw);
+	}
+
+	
+
+
+	//
+        // Read in packet data headers by using OFMatch
         OFMatch match = new OFMatch();
         match.loadFromPacket(pi.getPacketData(), pi.getInPort());
-        
         Long sourceMac = Ethernet.toLong(match.getDataLayerSource());
-        Long destMac = Ethernet.toLong(match.getDataLayerDestination());        
-        int sourceIp = match.getNetworkSource();
-        int destIp = match.getNetworkDestination();
-        Long switchId = sw.getId();
-        Short inputPort = match.getInputPort();
-               
-        if(isFirstPacket) {
-    		// get the virtual port for the packet and pass to the Parent Controller
-    		createControlTable();
-    		getSwitchePort(sw);
-    		
-    		List<String> switchIdList = this.thisTable.controller.dpid;
-    		Set<Short> setOfAllVirtualPort = null;
-    		for(String id : switchIdList) {
-    			setOfAllVirtualPort.addAll(this.virtualPortToReal.get(id).keySet());   			
-    		}
-
-    		StringBuffer virtualPort = null;
-    		
-    		for(Short vPort: setOfAllVirtualPort) {
-    			virtualPort.append(vPort);
-    			virtualPort.append(":");
-    		}
-    		virtualPort.deleteCharAt(virtualPort.lastIndexOf(":"));
-    		out.println("add gswitch " + virtualPort);
-    		String response;
-    		try {
-				while((response = in.readLine()) != null) {
-					this.GSWITCH_ID = response;
-					isFirstPacket = false;
-				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				System.out.println("Socket InputStream: There was a problem reading from the input stream");
-				e.printStackTrace();
-				isFirstPacket = true;
-			}
-    	}
-        
-    	/*
-    	 * Get the device type from the parent
-    	 * 
-    	 */
-        Short virtualPort = this.translate(sw, pi);
-        out.println("packetin " + this.GSWITCH_ID + " " + virtualPort + " " + sourceMac + " " + sourceIp);
-    	String device = null;
-		try {
-			while((device = in.readLine()) != null) {
-				
-			}
-		} catch (IOException e) {
-			System.out.println("Socket InputStream: There was a problem reading from the input stream");
-			e.printStackTrace();
-		}
-    	if("Switch".equalsIgnoreCase(device)) {
-    		// do not store packet Ip
-    	}
-    	else if("Host".equalsIgnoreCase(device)) {
-    		this.learnHostIp(switchId, sourceIp);
-    		this.addToPortMap(sw, sourceMac, inputPort);
-    	}
-    	else {
-    		out.println("packetin " + this.GSWITCH_ID + " " + virtualPort + " " + sourceMac + " " + sourceIp);
-    		// ask question about this
-    	}
-
-    	if(this.getFromPortMap(sw, destMac) == null) {
-    		out.println("getvport " + this.GSWITCH_ID + " mac " + destMac);
-    		String response;
-    		try {
-				while((response = in.readLine()) != null) {
-					if(response.equalsIgnoreCase("Flood")) {
-						// flood throughout subnet
-						this.writePacketOutForPacketIn(sw, pi, OFPort.OFPP_FLOOD.getValue());
-					} else if(response != null) {
-						// forward along path 
-						
-					}
-				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				System.out.println("Socket InputStream: There was a problem reading from the input stream");
-				e.printStackTrace();
-			}
-    	}
-    	else if (this.getFromPortMap(sw, destMac) == match.getInputPort()) {
-            log.trace("ignoring packet that arrived on same port as learned destination:"
-                    + " switch {} dest MAC {} port {}",
-                    new Object[]{ sw, HexString.toHexString(destMac), this.getFromPortMap(sw, destMac) });
-        }
-    	else {
-    		Short outputPort = this.getFromPortMap(sw, destMac);
-    		this.writePacketOutForPacketIn(sw, pi, outputPort);
-    	}
-    	
+        Long destMac = Ethernet.toLong(match.getDataLayerDestination());
 
 /* CS6998: Do works here to learn the port for this MAC
         ....
 */
         this.addToPortMap(sw, sourceMac, pi.getInPort());
        
+/* CS6998: Do works here to implement super firewall
+        Hint: You may check connection limitation here.
+        ....
+*/
 
+/* CS6998: Filter-out hosts in blacklist
+ *         Also, when the host is in blacklist check if the blockout time is
+ *         expired and handle properly
+        if (....)
+            return Command.CONTINUE;
+*/
 
 /* CS6998: Ask the switch to flood the packet to all of its ports
  *         Thus, this module currently works as a dummy hub
@@ -540,12 +400,7 @@ public class tmp
         if (outPort == null) {
             // If we haven't learned the port for the dest MAC, flood it
             // CS6998: Fill out the following ????
-            //project:
-           short vport = translate(sw, pi);
-          // pi.setInPort(vport);
-           short vdestPort = getPort(destMac);
-           short rdestPort = translateback(sw, vdestPort);
-           this.writePacketOutForPacketIn(sw, pi, rdestPort);
+            this.writePacketOutForPacketIn(sw, pi, OFPort.OFPP_FLOOD.getValue());
         } else if (outPort == match.getInputPort()) {
             log.trace("ignoring packet that arrived on same port as learned destination:"
                     + " switch {} dest MAC {} port {}",
@@ -660,13 +515,10 @@ public class tmp
                 new ConcurrentHashMap<IOFSwitch, Map<Long, Short>>();
         blacklist =
                 new HashMap<Long, Long>();
-        nextport = new genPort();
-        realPortToVirtual = new HashMap<String, Map<Short, Short>>();
-        virtualPortToReal = new HashMap<String, Map<Short, Short>>();
-        this.GSWITCH_ID = null;
-        hostIp = new ConcurrentHashMap<Long, Integer>();
-    	switchPortList = new HashMap<String, ArrayList<Long>>();
         thisTable = new QuerySwitch2(MAX_MACS_PER_SWITCH, apiPort);
+	switchPortList = new HashMap<String, ArrayList<Long>>();
+
+       
     }
 
     @Override
@@ -674,100 +526,8 @@ public class tmp
         floodlightProvider.addOFMessageListener(OFType.PACKET_IN, this);
         //floodlightProvider.addOFMessageListener(OFType.FLOW_REMOVED, this);
         floodlightProvider.addOFMessageListener(OFType.ERROR, this);
-    }
-    public short getPort(Long mac){
-        return 0;
-    }
-    
-    /**
-     * 
-     * @param host: InetAddress of the Parent Controller, null if localhost
-     * @param port: Port Parent Controller listens on
-     * @return List of objects with the indexes corresponding to
-     * 	0: Socket
-     *  1: BufferedReader
-     *  2: PrintWriter
-     */
-    public List<Object> getSocketIO(InetAddress host, int port) {
-    	host = (host != null) ? host : Inet4Address.getLoopbackAddress();
-
-        Socket commandSocket = null;
-        PrintWriter out = null;
-        BufferedReader in = null;
-		try {
-			commandSocket = new Socket(host, port);
-			out =
-			    new PrintWriter(commandSocket.getOutputStream(), true);
-			in =
-			    new BufferedReader(
-			        new InputStreamReader(commandSocket.getInputStream()));
-		} catch (IOException e) {
-			System.out.println("Couldn't get I/O for the connection to " +
-            host);
-			System.exit(1);
-		}
 		
-		List<Object> socketDetails = new ArrayList<Object>();
-		socketDetails.add(0, commandSocket);	
-		socketDetails.add(1, in);
-		socketDetails.add(2, out);
-		return socketDetails;
+	
+	
     }
-    
-    /**
-     * 
-     * @param switchId: the Switch Id on the packetIn message (switch connected to the controller enroute to the host
-     * @param hostIp The Ip address of the host, which is the source Ip of the packet In message
-     */
-    public void learnHostIp(Long switchId, int hostIp) {
-    	this.hostIp.put(switchId, hostIp);
-    }
-    
-	//modified by Yuanhui
-    private void createControlTable() {
-		try {
-        	System.out.println("get switch 10D");
-        	thisTable.getSwitchID();
-       	 	System.out.println("info");
-       	 	} catch(IOException e) {}
-        	try {
-        	System.out.println("get switch link info");
-        	thisTable.getSwitchLinkInfo();
-        	} catch(IOException e) {}
-        	try {
-        	System.out.println("getSwitchPortNum");
-        	thisTable.getSwitchPortNum();
-        	} catch(IOException e) {}
-	}
-
-    private void getSwitchePort(IOFSwitch sw) {
-		for (String key : thisTable.controller.portOfSwitches.keySet()) {
-			System.out.println(key);
-	    		ArrayList<Short> tmp = thisTable.controller.portOfSwitches.get(key);
-	    		ArrayList<Long> macSet = new ArrayList<Long>();
-			for (short portNum : tmp) {
-				System.out.println(portNum);
-				System.out.printf(sw.getPort(portNum).getHardwareAddress());
-				macSet.add(Ethernet.toLong(sw.getPort(portNum).getHardwareAddress()));		
-			}			
-			switchPortList.put(key, macSet);
-	        }
-
-	}
-}
-
-class genPort{
-    Short [] portCollection;
-    int length;
-    int next;
-    public genPort(){
-      length = 0;
-      next = 0;
-      portCollection = new Short[100];
-    }
-}
-class Switch1{
-    protected ArrayList<String> dpid;
-    protected Map<String, Map<String, Short>> linkBetweenSwitch;
-    protected Map<String, List<Short>> portOfSwitch;
 }

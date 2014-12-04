@@ -112,6 +112,8 @@ public class Switch
      * 
      */
     Map<String, Map<Short, Short>> realPortToVirtual;
+    Map<Short, String> vportToRport;
+
 
     HashMap<Long, String> portToSwitchID;
     HashMap<String, Long> switchIDToPort;
@@ -192,6 +194,7 @@ public class Switch
                   short tmp = getNextVirtualPort(p);
                   Map<Short, Short> map1;
                   Map<Short, Short> map2;
+                  String s = new String();
                   if(realPortToVirtual.containsKey(sw1)){
                       map1 = realPortToVirtual.get(sw1);
                   }
@@ -203,8 +206,10 @@ public class Switch
                   
                   map1.put(p, tmp);
                   map2.put(tmp, p);
+                  s = sw1 + " " + Short.toString(p);
                   realPortToVirtual.put(sw1, map1);
                   virtualPortToReal.put(sw1, map2);
+                  vportToRport(tmp, s);
               }
           }
     }
@@ -235,8 +240,8 @@ public class Switch
          return realPortToVirtual.get(sw).get(rport);
     }
     
-    public short translateback(IOFSwitch sw, short vport){
-         return virtualPortToReal.get(sw.getStringId()).get(vport);
+    public String translateback(short vport){
+         return vportToRport.get(vport);
     }
 
     /**
@@ -639,6 +644,7 @@ public class Switch
         nextport = new genPort();
         realPortToVirtual = new HashMap<String, Map<Short, Short>>();
         virtualPortToReal = new HashMap<String, Map<Short, Short>>();
+        vportToRport = new HashMap<Short, String>();
         this.GSWITCH_ID = null;
         hostIp = new ConcurrentHashMap<Integer, Short>();
     	switchPortList = new HashMap<String, ArrayList<Long>>();
@@ -743,9 +749,4 @@ class genPort{
       next = 0;
       portCollection = new Short[100];
     }
-}
-class Switch1{
-    protected ArrayList<String> dpid;
-    protected Map<String, Map<String, Short>> linkBetweenSwitch;
-    protected Map<String, List<Short>> portOfSwitch;
 }

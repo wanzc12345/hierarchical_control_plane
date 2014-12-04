@@ -507,7 +507,7 @@ public class Switch
 						this.writePacketOutForPacketIn(sw, pi, OFPort.OFPP_FLOOD.getValue());
 					} else if(response != null) {
 						// forward along path
-						String switchIdPort = this.translateback(sw, Short.parseShort(response));
+						String switchIdPort = this.translateback(Short.parseShort(response));
 						String[] argSwitchPort = switchIdPort.split(" ");
 						String swId = argSwitchPort[0];
 						if(swId.equals(sw.getStringId())) {

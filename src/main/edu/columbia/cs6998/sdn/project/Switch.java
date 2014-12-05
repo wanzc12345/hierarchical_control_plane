@@ -194,6 +194,9 @@ public class Switch
         	  System.out.println("The Switch id is " + sw1);
         	  System.out.println("ooooooooooooooooooooooooooooooooooooooooooooooooooooooo");        	  
               List<Short> list = sw.portOfSwitches.get(sw1);
+              System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+              System.out.println("There are " + list.size() + " ports in switch " + sw1);
+              System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");             
               Map<String, Short> map = sw.linkBetweenSwitch.get(sw1);
         	  if(map != null) {
         		  for(Short val : map.values()) {
@@ -222,6 +225,9 @@ public class Switch
                   
                   map1.put(p, tmp);
                   map2.put(tmp, p);
+                  System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+                  System.out.println("The port number " + p + " for switch " + sw1 + " has virtual port " + tmp + " created for it");
+                  System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");                
                   s = sw1 + " " + Short.toString(p);
                   realPortToVirtual.put(sw1, map1);
                   virtualPortToReal.put(sw1, map2);
@@ -517,9 +523,8 @@ public class Switch
     	 * Get the device type from the parent
     	 * 
     	 */
-        Short virtualPort = this.translate(sw, pi);
         if(!(externalSwitchMac.contains(sourceMac) || this.hostIp.containsKey(sourceIp))) {
-
+            Short virtualPort = this.translate(sw, pi);
     		out.println("packetin " + this.GSWITCH_ID + " " + virtualPort + " " + sourceMac + " " + sourceIp);
     		System.out.println("Command: packetin sent to the Parent for sourceIp " + sourceIp);
         	String device = null;

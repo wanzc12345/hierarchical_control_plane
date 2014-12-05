@@ -155,7 +155,7 @@ public class Switch
     
     protected static String GSWITCH_ID;
     
-    protected Map<Integer, Short> hostIp;
+    protected Map<Integer, String> hostIp;
     
     protected Map<String, ArrayList<Long>> switchPortList;
     
@@ -240,7 +240,7 @@ public class Switch
          return vport;
     }
     public short translate(IOFSwitch sw, short rport){
-         return realPortToVirtual.get(sw).get(rport);
+         return realPortToVirtual.get(sw.getStringId()).get(rport);
     }
     
     public String translateback(short vport){
@@ -501,28 +501,36 @@ public class Switch
         if(!(externalSwitchMac.contains(sourceMac) || this.hostIp.containsKey(sourceIp))) {
 
     		out.println("packetin " + this.GSWITCH_ID + " " + virtualPort + " " + sourceMac + " " + sourceIp);
-    		System.out.println("Command: packetin sent to the Parent for sourceMac " + sourceMac);
+    		System.out.println("Command: packetin sent to the Parent for sourceIp " + sourceIp);
         	String device = null;
     		try {
     			device = in.readLine();
 				if("Switch".equalsIgnoreCase(device)) externalSwitchMac.add(sourceMac);
-				else if("Host".equalsIgnoreCase(device)) this.hostIp.put(sourceIp, inputPort);
+				else if("Host".equalsIgnoreCase(device)) this.hostIp.put(sourceIp, sw.getStringId() + " " + inputPort.toString());
     		} catch (IOException e) {
     			System.out.println("Socket InputStream: There was a problem reading from the input stream");
     			e.printStackTrace();
     		}
     	}
 
+        String[] argString = new String[2];
+        String outputSwitchPort = this.hostIp.get(destIp);
+        if (outputSwitchPort != null) {
+        	argString = outputSwitchPort.split(" ");
+        }
+		
+		
     	if(!this.hostIp.containsKey(destIp)) {
     		out.println("getvport " + this.GSWITCH_ID + " ip " + destIp);
     		System.out.printf("Command: getvport sent to the Parent for destIp", destIp);
     		String response;
     		try {
 				response = in.readLine();
-					if(response.equalsIgnoreCase("Flood")) {
+					if(response.equalsIgnoreCase("-1")) {
 						// flood throughout subnet
 						this.writePacketOutForPacketIn(sw, pi, OFPort.OFPP_FLOOD.getValue());
 						log.info("INFO: Flow mod sent to the switch");
+
 					} else if(response != null) {
 						// forward along path
 						String switchIdPort = this.translateback(Short.parseShort(response));
@@ -533,6 +541,7 @@ public class Switch
 						    		& ~OFMatch.OFPFW_DL_DST
 						    		& ~OFMatch.OFPFW_NW_DST_MASK);
 				            // CS6998: Fill out the following ????
+						    System.out.println("set up match" + Short.parseShort(argSwitchPort[1]));
 				            this.writeFlowMod(sw, OFFlowMod.OFPFC_ADD, pi.getBufferId(), match, Short.parseShort(argSwitchPort[1]), sw.getId());
 						}
 						else {
@@ -541,6 +550,7 @@ public class Switch
 						    		& ~OFMatch.OFPFW_DL_DST
 						    		& ~OFMatch.OFPFW_NW_DST_MASK);
 				            // CS6998: Fill out the following ????
+							System.out.println("set up match ----- " + outputPort);
 				            this.writeFlowMod(sw, OFFlowMod.OFPFC_ADD, pi.getBufferId(), match, outputPort, sw.getId());
 						}
 						
@@ -551,18 +561,18 @@ public class Switch
 				e.printStackTrace();
 			}
     	}
-    	else if (this.hostIp.get(destIp) == match.getInputPort()) {
+    	else if (Short.parseShort(argString[1]) == match.getInputPort()) {
             log.trace("ignoring packet that arrived on same port as learned destination:"
                     + " switch {} dest MAC {} port {}",
                     new Object[]{ sw, HexString.toHexString(destMac), this.getFromPortMap(sw, destMac) });
         }
     	else {
-    		Short outputPort = this.hostIp.get(destIp);
+    		
             match.setWildcards(((Integer)sw.getAttribute(IOFSwitch.PROP_FASTWILDCARDS)).intValue()
                     & ~OFMatch.OFPFW_DL_DST
                     & ~OFMatch.OFPFW_NW_DST_MASK);
             // CS6998: Fill out the following ????
-            this.writeFlowMod(sw, OFFlowMod.OFPFC_ADD, pi.getBufferId(), match, outputPort, sw.getId());
+            this.writeFlowMod(sw, OFFlowMod.OFPFC_ADD, pi.getBufferId(), match, this.thisTable.localSwitchGraph.getNextHopPort(sw.getStringId(), argString[0]), sw.getId());
     	}
     	
     	try {
@@ -657,7 +667,7 @@ public class Switch
         realPortToVirtual = new HashMap<String, Map<Short, Short>>();
         virtualPortToReal = new HashMap<String, Map<Short, Short>>();
         vportToRport = new HashMap<Short, String>();
-        hostIp = new ConcurrentHashMap<Integer, Short>();
+        hostIp = new ConcurrentHashMap<Integer, String>();
         externalSwitchMac = new ArrayList<Long>();
     	switchPortList = new HashMap<String, ArrayList<Long>>();
         thisTable = new QuerySwitch2(MAX_MACS_PER_SWITCH, apiPort);
@@ -713,8 +723,15 @@ public class Switch
      * @param switchId: the Switch Id on the packetIn message (switch connected to the controller enroute to the host
      * @param hostIp The Ip address of the host, which is the source Ip of the packet In message
      */
-    public void learnHostIp(int hostIp, short inputPort) {
-    	this.hostIp.put(hostIp, inputPort);
+    public void learnHostIp(String switchId, int Ip, short inputPort) {
+    	
+    	Short inputP = inputPort;
+    	String tmpString = switchId + " " + inputP.toString();
+    	if (!hostIp.containsKey(Ip)) {
+    		hostIp.put(Ip, tmpString);
+    	}
+    	
+    	
     }
     
 	//modified by Yuanhui

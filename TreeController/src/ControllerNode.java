@@ -94,6 +94,8 @@ public class ControllerNode {
 				for(;i<gswitches.size();i++){
 					if(gswitches.get(i).name.equals(tokens[1])){
 						result = String.valueOf(topology.getNextHopPort(tokens[1], hostname));
+						if(result.equals("-1"))
+							result = "flood";
 						break;
 					}
 				}

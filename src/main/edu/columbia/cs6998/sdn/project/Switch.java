@@ -189,9 +189,9 @@ public class Switch
           controllerInfo sw = thisTable.controller;
           for(String sw1 : sw.dpid){
               List<Short> list = sw.portOfSwitches.get(sw1);
-              Map<String, Short> map = sw.linkBetweenSwitch.get(sw1);
+              //Map<String, Short> map = sw.linkBetweenSwitch.get(sw1);
               for(Short p : list){
-                  if(map.containsValue(p)) continue;
+                  //if(map.containsValue(p)) continue;
                   short tmp = getNextVirtualPort(p);
                   Map<Short, Short> map1;
                   Map<Short, Short> map2;
@@ -449,10 +449,14 @@ public class Switch
     		getSwitchePort(sw);
     		    		
     		List<String> switchIdList = this.thisTable.controller.dpid;
-    		Set<Short> setOfAllVirtualPort = null;
+    		Set<Short> setOfAllVirtualPort = new HashSet<Short>();
     		StringBuffer Id = null;
     		for(String id : switchIdList) {
-    			setOfAllVirtualPort.addAll(this.virtualPortToReal.get(id).keySet()); 
+    			if(this.virtualPortToReal.containsKey(id)) {
+    				if(!this.virtualPortToReal.get(id).keySet().isEmpty()) {
+    					setOfAllVirtualPort.addAll(this.virtualPortToReal.get(id).keySet()); 
+    				}
+    			}
     			Id.append(id);
     			Id.append(":");
     		}
@@ -648,7 +652,6 @@ public class Switch
         hostIp = new ConcurrentHashMap<Integer, Short>();
     	switchPortList = new HashMap<String, ArrayList<Long>>();
         thisTable = new QuerySwitch2(MAX_MACS_PER_SWITCH, apiPort);
-        
     }
 
     @Override

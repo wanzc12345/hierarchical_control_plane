@@ -29,8 +29,8 @@ public class ControllerNode {
 				String[] ports = tokens[2].split(";");
 				String[] switchIds = tokens[3].split(";");
 				GSwitch gswitch = new GSwitch("gs"+String.valueOf(gswitches.size()+1), ports.length, ports, switchIds);
-				for(String sid : switchIds){
-					switchGswitchMap.put(sid, gswitch.name);
+				for(int i=0;i<switchIds.length;i++){
+					switchGswitchMap.put(switchIds[i], gswitch.name);
 				}
 				gswitches.add(gswitch);
 				topology.addNode(gswitch.name);
@@ -146,6 +146,7 @@ public class ControllerNode {
 		childrenAddresses = new ArrayList<String>();
 		gswitches = new ArrayList<GSwitch>();
 		hosts = new ArrayList<Host>();
+		switchGswitchMap = new HashMap<String, String>();
 		topology = new Graph();
 		port = 12091;
 	}
@@ -156,6 +157,7 @@ public class ControllerNode {
 		gswitches = new ArrayList<GSwitch>();
 		hosts = new ArrayList<Host>();
 		topology = new Graph();
+		switchGswitchMap = new HashMap<String, String>();
 		port = 12091;
 		parseConfigFile(configfilename);
 	}
@@ -168,6 +170,7 @@ public class ControllerNode {
 		ServerSocket serverSocket = new ServerSocket(port);
 		Socket clientSocket;
 		while((clientSocket=serverSocket.accept())!=null){
+			System.out.println("new local controller connected.");
 			ChildThread p = new ChildThread(clientSocket);
 			new Thread(p).start();
 		}

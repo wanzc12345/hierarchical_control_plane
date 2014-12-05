@@ -193,7 +193,9 @@ public class Switch
               List<Short> list = sw.portOfSwitches.get(sw1);
               Map<String, Short> map = sw.linkBetweenSwitch.get(sw1);
         	  if(map != null) {
+        		  System.out.println("*******************************************************************8");
             	  System.out.println("There are " + map.values().toString()); 
+        		  System.out.println("*******************************************************************8");
         	  }
               for(Short p : list){
                   if(map != null && map.containsValue(p)) {

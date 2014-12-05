@@ -193,7 +193,7 @@ public class Switch
               List<Short> list = sw.portOfSwitches.get(sw1);
               Map<String, Short> map = sw.linkBetweenSwitch.get(sw1);
               for(Short p : list){
-                  if(map.containsValue(p)) continue;
+                  if(map != null && map.containsValue(p)) continue;
                   short tmp = getNextVirtualPort(p);
                   Map<Short, Short> map1;
                   Map<Short, Short> map2;

@@ -471,11 +471,13 @@ public class Switch
     		}
     	
     		out.println("add gswitch " + virtualPort.toString() + " " + Id.toString());
+    		System.out.println("Command add gswitch sent to the Parent");
     		String response;
     		try {
 				while((response = in.readLine()) != null) {
 					this.GSWITCH_ID = response;
 					isFirstPacket = false;
+					System.out.printf("Gwitch Name received as ", this.GSWITCH_ID);
 				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -493,6 +495,7 @@ public class Switch
         if(!(externalSwitchMac.contains(sourceMac) || this.hostIp.containsKey(sourceIp))) {
 
     		out.println("packetin " + this.GSWITCH_ID + " " + virtualPort + " " + sourceMac + " " + sourceIp);
+    		System.out.printf("Command: packetin sent to the Parent for sourceMac", sourceMac);
         	String device = null;
     		try {
     			while((device = in.readLine()) != null) {
@@ -507,12 +510,14 @@ public class Switch
 
     	if(!this.hostIp.containsKey(destIp)) {
     		out.println("getvport " + this.GSWITCH_ID + " ip " + destIp);
+    		System.out.printf("Command: getvport sent to the Parent for destIp", destIp);
     		String response;
     		try {
 				while((response = in.readLine()) != null) {
 					if(response.equalsIgnoreCase("Flood")) {
 						// flood throughout subnet
 						this.writePacketOutForPacketIn(sw, pi, OFPort.OFPP_FLOOD.getValue());
+						log.info("INFO: Flow mod sent to the switch");
 					} else if(response != null) {
 						// forward along path
 						String switchIdPort = this.translateback(Short.parseShort(response));

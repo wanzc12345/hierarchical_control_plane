@@ -149,7 +149,7 @@ public class Switch
     // time duration the firewall will block each node for
     protected static final int FIREWALL_BLOCK_TIME_DUR = (10 * 1000);
     
-    protected boolean isFirstPacket = true;
+    protected static boolean isFirstPacket = true;
     
     protected static final int PARENT_PORT= 12091;
     
@@ -427,7 +427,7 @@ public class Switch
      */
     
     private Command processPacketInMessage(IOFSwitch sw, OFPacketIn pi, FloodlightContext cntx) {
-    	
+
     	// Added by Adeyemi
 		List<Object> socketList = this.getSocketIO(null, this.PARENT_PORT);
 		Socket socket = (Socket) socketList.get(0);
@@ -443,8 +443,9 @@ public class Switch
         int destIp = match.getNetworkDestination();
         Long switchId = sw.getId();
         Short inputPort = match.getInputPort();
+    	log.info("Packet received with the sourceMac { " + sourceMac + " }, and destMAc { " + destMac + " }, and sourceIp { " + sourceIp + " }, and destIp { " +destIp + " }");
                
-        if(isFirstPacket) {
+        if(Switch.isFirstPacket) {
     		// get the virtual port for the packet and pass to the Parent Controller
     		createControlTable();
                 buildAgent();
@@ -478,7 +479,7 @@ public class Switch
     		try {
 				response = in.readLine();
 				this.GSWITCH_ID = response;
-				isFirstPacket = false;
+				Switch.isFirstPacket = false;
 				System.out.println("-------------------------------------------------------");			
 				System.out.println("Gswitch Name received from the Parent is " + this.GSWITCH_ID);
 				System.out.println("-------------------------------------------------------");
@@ -489,7 +490,7 @@ public class Switch
 				// TODO Auto-generated catch block
 				System.out.println("Socket InputStream: There was a problem reading from the input stream");
 				e.printStackTrace();
-				isFirstPacket = true;
+				Switch.isFirstPacket = true;
 			}
     	}
         
@@ -526,7 +527,7 @@ public class Switch
     		String response;
     		try {
 				response = in.readLine();
-					if(response.equalsIgnoreCase("-1")) {
+					if(response.equalsIgnoreCase("Flood")) {
 						// flood throughout subnet
 						this.writePacketOutForPacketIn(sw, pi, OFPort.OFPP_FLOOD.getValue());
 						log.info("INFO: Flow mod sent to the switch");

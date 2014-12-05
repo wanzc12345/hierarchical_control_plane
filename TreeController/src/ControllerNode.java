@@ -104,6 +104,11 @@ public class ControllerNode {
 			}else{
 				result = "Wrong command! Try help";
 			}
+		}else if(tokens[0].equals("dump")){
+			result = topology.dump();
+		}else if(tokens[1].equals("drawtopology")){
+			topology.drawGraph();
+			result = "Ok";
 		}else{
 			result = "Wrong command! Try help";
 		}

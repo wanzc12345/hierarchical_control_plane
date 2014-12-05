@@ -444,7 +444,12 @@ public class Switch
         Long switchId = sw.getId();
         Short inputPort = match.getInputPort();
     	log.info("Packet received with the sourceMac { " + sourceMac + " }, and destMAc { " + destMac + " }, and sourceIp { " + sourceIp + " }, and destIp { " +destIp + " }");
-               
+        if(destIp == 0) {
+			this.writePacketOutForPacketIn(sw, pi, OFPort.OFPP_FLOOD.getValue());
+			log.info("INFO: Flow Flood sent to the switch for Mininet generated packet");       	
+        	return Command.CONTINUE;
+        }
+        
         if(Switch.isFirstPacket) {
     		// get the virtual port for the packet and pass to the Parent Controller
     		createControlTable();
@@ -530,7 +535,7 @@ public class Switch
 					if(response.equalsIgnoreCase("Flood")) {
 						// flood throughout subnet
 						this.writePacketOutForPacketIn(sw, pi, OFPort.OFPP_FLOOD.getValue());
-						log.info("INFO: Flow mod sent to the switch");
+						log.info("INFO: Flow Flood sent to the switch");
 
 					} else if(response != null) {
 						// forward along path

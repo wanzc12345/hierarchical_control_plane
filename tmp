@@ -71,7 +71,6 @@ import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFType;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionOutput;
-import org.openflow.protocol.action.OFActionDataLayerSource;
 import org.openflow.util.HexString;
 import org.openflow.util.LRULinkedHashMap;
 import org.slf4j.Logger;
@@ -113,8 +112,6 @@ public class Switch
      * 
      */
     Map<String, Map<Short, Short>> realPortToVirtual;
-    Map<Short, String> vportToRport;
-
 
     HashMap<Long, String> portToSwitchID;
     HashMap<String, Long> switchIDToPort;
@@ -185,17 +182,15 @@ public class Switch
     }
 
     //project
-    public void buildAgent(){
-          controllerInfo sw = thisTable.controller;
+    public void buildAgent(Switch1 sw){
           for(String sw1 : sw.dpid){
-              List<Short> list = sw.portOfSwitches.get(sw1);
+              List<Short> list = sw.portOfSwitch.get(sw1);
               Map<String, Short> map = sw.linkBetweenSwitch.get(sw1);
               for(Short p : list){
                   if(map.containsValue(p)) continue;
                   short tmp = getNextVirtualPort(p);
                   Map<Short, Short> map1;
                   Map<Short, Short> map2;
-                  String s = new String();
                   if(realPortToVirtual.containsKey(sw1)){
                       map1 = realPortToVirtual.get(sw1);
                   }
@@ -207,10 +202,8 @@ public class Switch
                   
                   map1.put(p, tmp);
                   map2.put(tmp, p);
-                  s = sw1 + " " + Short.toString(p);
                   realPortToVirtual.put(sw1, map1);
                   virtualPortToReal.put(sw1, map2);
-                  vportToRport.put(tmp, s);
               }
           }
     }
@@ -241,8 +234,8 @@ public class Switch
          return realPortToVirtual.get(sw).get(rport);
     }
     
-    public String translateback(short vport){
-         return vportToRport.get(vport);
+    public short translateback(IOFSwitch sw, short vport){
+         return virtualPortToReal.get(sw.getStringId()).get(vport);
     }
 
     /**
@@ -305,7 +298,7 @@ public class Switch
      * @param outPort The switch port to output it to.
      */
     private void writeFlowMod(IOFSwitch sw, short command, int bufferId,
-            OFMatch match, short outPort, long switchId) {
+            OFMatch match, short outPort) {
         // from openflow 1.0 spec - need to set these on a struct ofp_flow_mod:
         // struct ofp_flow_mod {
         //    struct ofp_header header;
@@ -347,8 +340,8 @@ public class Switch
         // uint16_t max_len; /* Max length to send to controller. */
         // type/len are set because it is OFActionOutput,
         // and port, max_len are arguments to this constructor
-        flowMod.setActions(Arrays.asList((OFAction) new OFActionOutput(outPort, (short) 0xffff), (OFAction) new OFActionDataLayerSource(Ethernet.toByteArray(switchId))));
-        flowMod.setLength((short) (OFFlowMod.MINIMUM_LENGTH + OFActionOutput.MINIMUM_LENGTH + OFActionDataLayerSource.MINIMUM_LENGTH));
+        flowMod.setActions(Arrays.asList((OFAction) new OFActionOutput(outPort, (short) 0xffff)));
+        flowMod.setLength((short) (OFFlowMod.MINIMUM_LENGTH + OFActionOutput.MINIMUM_LENGTH));
 
         if (log.isTraceEnabled()) {
             log.trace("{} {} flow mod {}", 
@@ -445,7 +438,6 @@ public class Switch
         if(isFirstPacket) {
     		// get the virtual port for the packet and pass to the Parent Controller
     		createControlTable();
-                buildAgent();
     		getSwitchePort(sw);
     		    		
     		List<String> switchIdList = this.thisTable.controller.dpid;
@@ -486,7 +478,9 @@ public class Switch
     	 * 
     	 */
         Short virtualPort = this.translate(sw, pi);
-        if(!(externalSwitchMac.contains(sourceMac) || this.hostIp.containsKey(sourceIp))) {
+        out.println("packetin " + this.GSWITCH_ID + " " + virtualPort + " " + sourceMac + " " + sourceIp);
+
+    	if(!(externalSwitchMac.contains(sourceMac) || this.hostIp.containsKey(sourceIp))) {
 
     		out.println("packetin " + this.GSWITCH_ID + " " + virtualPort + " " + sourceMac + " " + sourceIp);
         	String device = null;
@@ -511,7 +505,7 @@ public class Switch
 						this.writePacketOutForPacketIn(sw, pi, OFPort.OFPP_FLOOD.getValue());
 					} else if(response != null) {
 						// forward along path
-						String switchIdPort = this.translateback(Short.parseShort(response));
+						String switchIdPort = this.translateback(sw, Short.parseShort(response));
 						String[] argSwitchPort = switchIdPort.split(" ");
 						String swId = argSwitchPort[0];
 						if(swId.equals(sw.getStringId())) {
@@ -522,7 +516,7 @@ public class Switch
 				            this.writeFlowMod(sw, OFFlowMod.OFPFC_ADD, pi.getBufferId(), match, Short.parseShort(argSwitchPort[1]), sw.getId());
 						}
 						else {
-							Short outputPort = this.thisTable.localSwitchGraph.getNextHopPort(sw.getStringId(), swId);
+							Short outputPort = this.getNextHopPort(sw.getStringId(), swId);
 							match.setWildcards(((Integer)sw.getAttribute(IOFSwitch.PROP_FASTWILDCARDS)).intValue()
 						    		& ~OFMatch.OFPFW_DL_DST
 						    		& ~OFMatch.OFPFW_NW_DST_MASK);
@@ -643,7 +637,6 @@ public class Switch
         nextport = new genPort();
         realPortToVirtual = new HashMap<String, Map<Short, Short>>();
         virtualPortToReal = new HashMap<String, Map<Short, Short>>();
-        vportToRport = new HashMap<Short, String>();
         this.GSWITCH_ID = null;
         hostIp = new ConcurrentHashMap<Integer, Short>();
     	switchPortList = new HashMap<String, ArrayList<Long>>();
@@ -720,7 +713,6 @@ public class Switch
         	System.out.println("getSwitchPortNum");
         	thisTable.getSwitchPortNum();
         	} catch(IOException e) {}
-           //     buildAgent();
 	}
 
     private void getSwitchePort(IOFSwitch sw) {
@@ -737,8 +729,6 @@ public class Switch
 	        }
 
 	}
-    
-    
 }
 
 class genPort{
@@ -751,3 +741,9 @@ class genPort{
       portCollection = new Short[100];
     }
 }
+class Switch1{
+    protected ArrayList<String> dpid;
+    protected Map<String, Map<String, Short>> linkBetweenSwitch;
+    protected Map<String, List<Short>> portOfSwitch;
+}
+

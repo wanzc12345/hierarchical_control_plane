@@ -5,7 +5,6 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 
@@ -14,7 +13,6 @@ public class ControllerNode {
 	public String parentAddress;
 	public List<String> childrenAddresses;
 	public List<GSwitch> gswitches;
-	public HashMap<String, String> switchGswitchMap;
 	public List<Host> hosts;
 	public Graph topology;
 	public int port;
@@ -27,14 +25,16 @@ public class ControllerNode {
 		if(tokens[0].equals("add")){
 			if(tokens[1].equals("gswitch")){
 				String[] ports = tokens[2].split(":");
-				String[] switchIds = tokens[3].split(":");
-				GSwitch gswitch = new GSwitch("gs"+String.valueOf(gswitches.size()+1), ports.length, ports, switchIds);
-				for(String sid : switchIds){
-					switchGswitchMap.put(sid, gswitch.name);
-				}
+				GSwitch gswitch = new GSwitch("gs"+String.valueOf(gswitches.size()+1), ports.length, ports);
 				gswitches.add(gswitch);
 				topology.addNode(gswitch.name);
 				result = gswitch.name;
+//			}else if(tokens[1].equals("host")){
+//				Host host = new Host(tokens[2], tokens[3], tokens[4]);
+//				hosts.add(host);
+//				topology.addNode(host.name);
+//				topology.addEdge(host.name, tokens[1]);
+//				result = "Ok";
 			}else{
 				result = "Wrong command! Try help";
 			}
@@ -62,46 +62,63 @@ public class ControllerNode {
 			}
 		}else if(tokens[0].equals("packetin")){
 			String gswitchName = tokens[1], inPort = tokens[2], srcMac = tokens[3], srcIp = tokens[4];
+			boolean isNewHost = true;
+			Host host = null;
 			GSwitch gSwitch = null;
-			for(int i=0;i<gswitches.size();i++){
-				if(gswitches.get(i).name.equals(gswitchName)){
-					gSwitch = gswitches.get(i);
+			for(int i=0;i<hosts.size();i++){
+				if(hosts.get(i).mac.equals(srcMac)){
+					isNewHost = false;
+					host = hosts.get(i);
 					break;
 				}
 			}
-			if(!switchGswitchMap.containsKey(srcMac)){
+			for(int i=0;i<gswitches.size();i++){
+				if(gswitches.get(i).name.equals(gswitchName)){
+					gSwitch = gswitches.get(i);
+				}
+			}
+			if(isNewHost){
 				Host newHost = new Host("h"+String.valueOf(hosts.size()+1), srcMac, srcIp);
 				hosts.add(newHost);
 				topology.addNode(newHost.name);
-				topology.addEdge(gswitchName, newHost.name, Short.parseShort(inPort));
+				topology.addEdge(gswitchName, inPort+":"+newHost.name);
 				gSwitch.addLink(Short.parseShort(inPort), newHost.name);
 				result = "host";
 			}else{
-				gSwitch.addLink(Short.parseShort(inPort), switchGswitchMap.get(srcMac));
-				topology.addEdge(gSwitch.name, switchGswitchMap.get(srcMac), Short.parseShort(inPort));
+				for(int i=0;i<gswitches.size();i++){
+					if(gswitches.get(i).isConnectedTo(host.name)){
+						gSwitch.addLink(Short.parseShort(inPort), gswitches.get(i).name);
+						topology.addEdge(gSwitch.name, inPort+":"+gswitches.get(i).name);
+					}
+				}
 				result = "switch";
 			}
 		}else if(tokens[0].equals("getvport")){
 			String hostname = "";
-			if(tokens[2].equals("ip")){
+			if(tokens[2].equals("mac")){
+				for(int i=0;i<hosts.size();i++){
+					if(hosts.get(i).mac.equals(tokens[3])){
+						hostname = hosts.get(i).name;
+						break;
+					}
+				}
+			}else{
 				for(int i=0;i<hosts.size();i++){
 					if(hosts.get(i).ip.equals(tokens[3])){
 						hostname = hosts.get(i).name;
 						break;
 					}
 				}
-				int i = 0;
-				for(;i<gswitches.size();i++){
-					if(gswitches.get(i).name.equals(tokens[1])){
-						result = String.valueOf(topology.getNextHopPort(tokens[1], hostname));
-						break;
-					}
-				}
-				if(i==gswitches.size())
-					result = "flood";
-			}else{
-				result = "Wrong command! Try help";
 			}
+			int i = 0;
+			for(;i<gswitches.size();i++){
+				if(gswitches.get(i).name.equals(tokens[1])){
+					result = String.valueOf(gswitches.get(i).getPortsConnectedTo(topology.getNextHop(tokens[1], hostname)).get(0));
+					break;
+				}
+			}
+			if(i==gswitches.size())
+				result = "flood";
 		}else{
 			result = "Wrong command! Try help";
 		}

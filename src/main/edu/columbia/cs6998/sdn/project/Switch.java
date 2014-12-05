@@ -732,8 +732,6 @@ public class Switch
 	    		ArrayList<Short> tmp = thisTable.controller.portOfSwitches.get(key);
 	    		ArrayList<Long> macSet = new ArrayList<Long>();
 			for (short portNum : tmp) {
-				System.out.println(portNum);
-				System.out.printf("",sw.getPort(portNum).getHardwareAddress());
 				macSet.add(Ethernet.toLong(sw.getPort(portNum).getHardwareAddress()));		
 			}			
 			switchPortList.put(key, macSet);

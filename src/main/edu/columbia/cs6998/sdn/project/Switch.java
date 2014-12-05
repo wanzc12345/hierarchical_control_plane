@@ -652,6 +652,7 @@ public class Switch
         vportToRport = new HashMap<Short, String>();
         this.GSWITCH_ID = null;
         hostIp = new ConcurrentHashMap<Integer, Short>();
+        externalSwitchMac = new ArrayList<Long>();
     	switchPortList = new HashMap<String, ArrayList<Long>>();
         thisTable = new QuerySwitch2(MAX_MACS_PER_SWITCH, apiPort);
     }

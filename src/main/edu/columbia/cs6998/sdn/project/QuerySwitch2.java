@@ -108,6 +108,9 @@ public class QuerySwitch2 {
 	      String arg[] = inputLine.split("inetAddress");	
 	      for (int i = 1; i < arg.length; i++) { 
 	    	  String arg3[] = arg[i].split("dpid");
+	    	  for(String id : arg3) {
+	    		  System.out.println("There are strings dpids = " + id);
+	    	  }
 	    	  ArrayList<Short> tmp = new ArrayList<Short>();
 	    	  String arg2[] = arg[i].split("portNumber\":");
 	    	  for (int j = 1; j < arg2.length; j++) {

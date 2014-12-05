@@ -450,26 +450,26 @@ public class Switch
     		    		
     		List<String> switchIdList = this.thisTable.controller.dpid;
     		Set<Short> setOfAllVirtualPort = new HashSet<Short>();
-    		StringBuffer Id = null;
-    		for(String id : switchIdList) {
+    		StringBuffer Id = new StringBuffer();
+    		for(int index=0; index < switchIdList.size(); ++index) {
+    			String id = switchIdList.get(index);
     			if(this.virtualPortToReal.containsKey(id)) {
     				if(!this.virtualPortToReal.get(id).keySet().isEmpty()) {
     					setOfAllVirtualPort.addAll(this.virtualPortToReal.get(id).keySet()); 
     				}
     			}
     			Id.append(id);
-    			Id.append(":");
+    			if(index != switchIdList.size()-1) Id.append(";");
     		}
 
-    		StringBuffer virtualPort = null;
-    		
-    		for(Short vPort: setOfAllVirtualPort) {
-    			virtualPort.append(vPort);
-    			virtualPort.append(":");
+    		StringBuffer virtualPort = new StringBuffer();
+    		Object[] virtualPorts =  setOfAllVirtualPort.toArray();
+    		for(int index=0; index < virtualPorts.length; ++index) {
+    			Short vport = (Short) virtualPorts[index];
+    			virtualPort.append(vport);
+    			if(index != virtualPorts.length-1) virtualPort.append(";");
     		}
-    		
-    		virtualPort.deleteCharAt(virtualPort.lastIndexOf(":"));
-    		Id.deleteCharAt(Id.lastIndexOf(":"));
+    	
     		out.println("add gswitch " + virtualPort.toString() + " " + Id.toString());
     		String response;
     		try {

@@ -165,6 +165,8 @@ public class Switch
     
     protected List<Long> externalHostMac;
     
+    protected String cName = "Controller1";
+    
     //add by Yuanhui
     //
     //controlller information
@@ -471,13 +473,18 @@ public class Switch
     		}
     	
     		out.println("add gswitch " + virtualPort.toString() + " " + Id.toString());
-    		System.out.println("Command add gswitch sent to the Parent");
+    		System.out.println("Command add gswitch sent to the Parent by " + this.cName);
     		String response;
     		try {
 				response = in.readLine();
 				this.GSWITCH_ID = response;
 				isFirstPacket = false;
-				System.out.printf("Gwitch Name received as ", this.GSWITCH_ID);
+				System.out.println("-------------------------------------------------------");			
+				System.out.println("Gswitch Name received from the Parent is " + this.GSWITCH_ID);
+				System.out.println("-------------------------------------------------------");
+				System.out.println("-------------------------------------------------------");			
+				System.out.println("Response received from the Parent wass " + response);
+				System.out.println("-------------------------------------------------------");
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				System.out.println("Socket InputStream: There was a problem reading from the input stream");
@@ -494,7 +501,7 @@ public class Switch
         if(!(externalSwitchMac.contains(sourceMac) || this.hostIp.containsKey(sourceIp))) {
 
     		out.println("packetin " + this.GSWITCH_ID + " " + virtualPort + " " + sourceMac + " " + sourceIp);
-    		System.out.printf("Command: packetin sent to the Parent for sourceMac", sourceMac);
+    		System.out.println("Command: packetin sent to the Parent for sourceMac " + sourceMac);
         	String device = null;
     		try {
     			device = in.readLine();
@@ -650,7 +657,6 @@ public class Switch
         realPortToVirtual = new HashMap<String, Map<Short, Short>>();
         virtualPortToReal = new HashMap<String, Map<Short, Short>>();
         vportToRport = new HashMap<Short, String>();
-        this.GSWITCH_ID = null;
         hostIp = new ConcurrentHashMap<Integer, Short>();
         externalSwitchMac = new ArrayList<Long>();
     	switchPortList = new HashMap<String, ArrayList<Long>>();

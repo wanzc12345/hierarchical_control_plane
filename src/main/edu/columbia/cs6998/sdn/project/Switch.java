@@ -249,7 +249,6 @@ public class Switch
         // OFMatch match = new OFMatch();
         // match.loadFromPacket(pi.getPacketData(), pi.getInPort());
         // Long sourceMac = Ethernet.toLong(match.getDataLayerDestination());
-         System.out.println("PortVportMap:"+realPortToVritual.toString()+" switchId:"+sw.getStringId());
          short vport = realPortToVirtual.get(sw.getStringId()).get(inport);
          return vport;
     }

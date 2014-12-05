@@ -143,7 +143,7 @@ public class Graph {
 		return rst;
 	}
 
-	public void drawGragh(){
+	public boolean drawGraph(){
 
 		  try {
 			  String head = "<script src=\"srcjs/sigma.core.js\"></script>" + 
@@ -200,10 +200,10 @@ public class Graph {
 		   for(String sw1 : adjMap.keySet()){
 			   Map<String, Short> map = adjMap.get(sw1);
 			   j++;
-			   tmp1 += "g.nodes.push({id:" + "'n' + " + sw1 + ",label: 'Node' + " + Integer.toString(j) + ", x:Math.random(),y:Math.random(),size:0.3,color:'#666'});";
+			   tmp1 += "g.nodes.push({id:" + "'n' + " + "'" + sw1 + "'" + ",label: 'Node' + " + Integer.toString(j) + ", x:Math.random(),y:Math.random(),size:0.3,color:'#666'});";
 			   for(String sw2 : map.keySet()){
 				   i++;
-				   tmp2 += "g.edges.push({id: 'e' + " + Integer.toString(i) +",source: " + "'n' + " + sw1 + ",target: " + "'n' + " + sw2 + ",size: 0.2,color: '#ccc'});";
+				   tmp2 += "g.edges.push({id: 'e' + " + Integer.toString(i) +",source: " + "'n' + " + "'" + sw1 + "'" + ",target: " + "'n' + " + "'" + sw2 + "'" + ",size: 0.2,color: '#ccc'});";
 			   }
 		   }
 	       String end = "s = new sigma({graph: g,container: 'graph-container'});</script>";
@@ -220,11 +220,12 @@ public class Graph {
 		   bw.write(res);
 		   bw.close();
 
-		   System.out.println("Done");
+		   return true;
 
 		  } catch (IOException e) {
 		   e.printStackTrace();
 		  }
+		return false;
 	}
 }
 

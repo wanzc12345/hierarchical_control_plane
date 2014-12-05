@@ -26,8 +26,8 @@ public class ControllerNode {
 			return "Wrong command! Try help";
 		if(tokens[0].equals("add")){
 			if(tokens[1].equals("gswitch")){
-				String[] ports = tokens[2].split(":");
-				String[] switchIds = tokens[3].split(":");
+				String[] ports = tokens[2].split(";");
+				String[] switchIds = tokens[3].split(";");
 				GSwitch gswitch = new GSwitch("gs"+String.valueOf(gswitches.size()+1), ports.length, ports, switchIds);
 				for(String sid : switchIds){
 					switchGswitchMap.put(sid, gswitch.name);

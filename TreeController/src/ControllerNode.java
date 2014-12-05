@@ -22,8 +22,7 @@ public class ControllerNode {
 	public String process(String command){
 		String result = "";
 		String[] tokens = command.split(" ");
-		if(tokens.length<3)
-			return "Wrong command! Try help";
+
 		if(tokens[0].equals("add")){
 			if(tokens[1].equals("gswitch")){
 				String[] ports = tokens[2].split(";");
@@ -106,7 +105,7 @@ public class ControllerNode {
 			}
 		}else if(tokens[0].equals("dump")){
 			result = topology.dump();
-		}else if(tokens[1].equals("drawtopology")){
+		}else if(tokens[0].equals("drawtopology")){
 			topology.drawGraph();
 			result = "Ok";
 		}else{

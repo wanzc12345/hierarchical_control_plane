@@ -131,6 +131,18 @@ public class Graph {
 		return src;
 	}
 	 */
+	 
+	public String dump() {
+		String rst = "$";
+		for (String ssw : adjMap.keySet()) {
+			for (String dsw : adjMap.get(ssw).keySet()) {
+				rst = rst + ssw + "->" + dsw + " ";
+			}
+		}
+		System.out.println(rst);
+		return rst;
+	}
+
 	public void drawGragh(){
 
 		  try {

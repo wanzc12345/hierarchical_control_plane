@@ -81,7 +81,7 @@ public class QuerySwitch2 {
 	    	  if (swMap == null) {
 	    		  swMap = new HashMap<String, Short>();
 	    		  swMap.put((String) arg[i].subSequence(71, 94), Short.parseShort(s[0]));  
-	    		  //controller.linkBetweenSwitch.put((String) arg[i].subSequence(0, 23), swMap);	  
+	    		  controller.linkBetweenSwitch.put((String) arg[i].subSequence(0, 23), swMap);	  
 	    	  }  	
 	    	  else
 	    		  swMap.put((String) arg[i].subSequence(71, 94), Short.parseShort(s[0]));    

@@ -474,11 +474,10 @@ public class Switch
     		System.out.println("Command add gswitch sent to the Parent");
     		String response;
     		try {
-				while((response = in.readLine()) != null) {
-					this.GSWITCH_ID = response;
-					isFirstPacket = false;
-					System.out.printf("Gwitch Name received as ", this.GSWITCH_ID);
-				}
+				response = in.readLine();
+				this.GSWITCH_ID = response;
+				isFirstPacket = false;
+				System.out.printf("Gwitch Name received as ", this.GSWITCH_ID);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				System.out.println("Socket InputStream: There was a problem reading from the input stream");
@@ -498,10 +497,9 @@ public class Switch
     		System.out.printf("Command: packetin sent to the Parent for sourceMac", sourceMac);
         	String device = null;
     		try {
-    			while((device = in.readLine()) != null) {
-    				if("Switch".equalsIgnoreCase(device)) externalSwitchMac.add(sourceMac);
-    				else if("Host".equalsIgnoreCase(device)) this.hostIp.put(sourceIp, inputPort);
-    			}
+    			device = in.readLine();
+				if("Switch".equalsIgnoreCase(device)) externalSwitchMac.add(sourceMac);
+				else if("Host".equalsIgnoreCase(device)) this.hostIp.put(sourceIp, inputPort);
     		} catch (IOException e) {
     			System.out.println("Socket InputStream: There was a problem reading from the input stream");
     			e.printStackTrace();
@@ -513,7 +511,7 @@ public class Switch
     		System.out.printf("Command: getvport sent to the Parent for destIp", destIp);
     		String response;
     		try {
-				while((response = in.readLine()) != null) {
+				response = in.readLine();
 					if(response.equalsIgnoreCase("Flood")) {
 						// flood throughout subnet
 						this.writePacketOutForPacketIn(sw, pi, OFPort.OFPP_FLOOD.getValue());
@@ -540,7 +538,6 @@ public class Switch
 						}
 						
 					}
-				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				System.out.println("Socket InputStream: There was a problem reading from the input stream");

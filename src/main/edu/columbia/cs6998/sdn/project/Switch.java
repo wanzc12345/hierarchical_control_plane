@@ -190,12 +190,17 @@ public class Switch
     public void buildAgent(){
           controllerInfo sw = thisTable.controller;
           for(String sw1 : sw.dpid){
+        	  System.out.println("ooooooooooooooooooooooooooooooooooooooooooooooooooooooo");
+        	  System.out.println("The Switch id is " + sw1);
+        	  System.out.println("ooooooooooooooooooooooooooooooooooooooooooooooooooooooo");        	  
               List<Short> list = sw.portOfSwitches.get(sw1);
               Map<String, Short> map = sw.linkBetweenSwitch.get(sw1);
         	  if(map != null) {
-        		  System.out.println("*******************************************************************8");
-            	  System.out.println("There are " + map.values().toString()); 
-        		  System.out.println("*******************************************************************8");
+        		  for(Short val : map.values()) {
+	        		  System.out.println("*******************************************************************8");
+	            	  System.out.println("The link between switches is " + val); 
+	        		  System.out.println("*******************************************************************8");
+        		  }
         	  }
               for(Short p : list){
                   if(map != null && map.containsValue(p)) {

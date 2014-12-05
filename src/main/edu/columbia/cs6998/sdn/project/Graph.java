@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.io.*;
 
 
 public class Graph {
@@ -138,6 +139,90 @@ public class Graph {
 		return src;
 	}
 	 */
+		public boolean drawGraph(){
+
+		  try {
+			  String head = "<script src=\"srcjs/sigma.core.js\"></script>" + 
+			          "<script src=\"srcjs/conrad.js\"></script>" + 
+			          "<script src=\"srcjs/utils/sigma.utils.js\"></script>" + 
+			          "<script src=\"srcjs/utils/sigma.polyfills.js\"></script>" + 
+			          "<script src=\"srcjs/sigma.settings.js\"></script>" + 
+			          "<script src=\"srcjs/classes/sigma.classes.dispatcher.js\"></script>" + 
+			          "<script src=\"srcjs/classes/sigma.classes.configurable.js\"></script>" + 
+			          "<script src=\"srcjs/classes/sigma.classes.graph.js\"></script>" + 
+			          "<script src=\"srcjs/classes/sigma.classes.camera.js\"></script>" + 
+			          "<script src=\"srcjs/classes/sigma.classes.quad.js\"></script>" + 
+			          "<script src=\"srcjs/captors/sigma.captors.mouse.js\"></script>" + 
+			          "<script src=\"srcjs/captors/sigma.captors.touch.js\"></script>" + 
+			          "<script src=\"srcjs/renderers/sigma.renderers.canvas.js\"></script>" + 
+			          "<script src=\"srcjs/renderers/sigma.renderers.webgl.js\"></script>" + 
+			          "<script src=\"srcjs/renderers/sigma.renderers.def.js\"></script>" + 
+			          "<script src=\"srcjs/renderers/webgl/sigma.webgl.nodes.def.js\"></script>" + 
+			          "<script src=\"srcjs/renderers/webgl/sigma.webgl.nodes.fast.js\"></script>" + 
+			          "<script src=\"srcjs/renderers/webgl/sigma.webgl.edges.def.js\"></script>" + 
+			          "<script src=\"srcjs/renderers/webgl/sigma.webgl.edges.fast.js\"></script>" + 
+			          "<script src=\"srcjs/renderers/webgl/sigma.webgl.edges.arrow.js\"></script>" + 
+			          "<script src=\"srcjs/renderers/canvas/sigma.canvas.labels.def.js\"></script>" + 
+			          "<script src=\"srcjs/renderers/canvas/sigma.canvas.hovers.def.js\"></script>" + 
+			          "<script src=\"srcjs/renderers/canvas/sigma.canvas.nodes.def.js\"></script>" + 
+			          "<script src=\"srcjs/renderers/canvas/sigma.canvas.edges.def.js\"></script>" + 
+			          "<script src=\"srcjs/renderers/canvas/sigma.canvas.edges.curve.js\"></script>" + 
+			          "<script src=\"srcjs/renderers/canvas/sigma.canvas.edges.arrow.js\"></script>" + 
+			          "<script src=\"srcjs/renderers/canvas/sigma.canvas.edges.curvedArrow.js\"></script>" + 
+			          "<script src=\"srcjs/middlewares/sigma.middlewares.rescale.js\"></script>" + 
+			          "<script src=\"srcjs/middlewares/sigma.middlewares.copy.js\"></script>" + 
+			          "<script src=\"srcjs/misc/sigma.misc.animation.js\"></script>" + 
+			          "<script src=\"srcjs/misc/sigma.misc.bindEvents.js\"></script>" + 
+			          "<script src=\"srcjs/misc/sigma.misc.drawHovers.js\"></script>";
+			  String head1 = "<div id=\"container\">" +
+					  "<style>" +
+					    "#graph-container {" +
+					    "  top: 0;" +
+					    "  bottom: 0;" +
+					    "  left: 0;" +
+					    "  right: 0;" +
+					    "  position: absolute;" +
+					    "}" +
+					    "</style>" +
+					  "<div id=\"graph-container\">" +
+					  "</div>" +
+					  "</div>" + 
+					  "<script>";
+			  String head2 = "var i,s,N = " + Integer.toString(V) + ",E = " + Integer.toString(E) + ",g = {nodes: [],edges: []};";
+		  
+		   String tmp1 = new String();
+		   String tmp2 = new String();
+		   int i = 0, j = 0;
+		   for(String sw1 : adjMap.keySet()){
+			   Map<String, Short> map = adjMap.get(sw1);
+			   j++;
+			   tmp1 += "g.nodes.push({id:" + "'n' + " + "'" + sw1 + "'" + ",label: 'Node' + " + Integer.toString(j) + ", x:Math.random(),y:Math.random(),size:0.3,color:'#666'});";
+			   for(String sw2 : map.keySet()){
+				   i++;
+				   tmp2 += "g.edges.push({id: 'e' + " + Integer.toString(i) +",source: " + "'n' + " + "'" + sw1 + "'" + ",target: " + "'n' + " + "'" + sw2 + "'" + ",size: 0.2,color: '#ccc'});";
+			   }
+		   }
+	       String end = "s = new sigma({graph: g,container: 'graph-container'});</script>";
+	       String res = head + head1 + head2 + tmp1 + tmp2 + end;
+		   File file = new File("topo.html");
+
+		   // if file doesnt exists, then create it
+		   if (!file.exists()) {
+		    file.createNewFile();
+		   }
+
+		   FileWriter fw = new FileWriter(file.getAbsoluteFile());
+		   BufferedWriter bw = new BufferedWriter(fw);
+		   bw.write(res);
+		   bw.close();
+
+		   return true;
+
+		  } catch (IOException e) {
+		   e.printStackTrace();
+		  }
+		return false;
+	}
 }
 
 

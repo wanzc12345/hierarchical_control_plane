@@ -122,6 +122,16 @@ public class Graph {
 		return -1;
 	}
 
+	public String dump() {
+		String rst = "$";
+		for (String ssw : adjMap.keySet()) {
+			for (String dsw : adjMap.get(ssw).keySet()) {
+				rst = rst + ssw + "->" + dsw + " ";
+			}
+		}
+		System.out.println(rst);
+		return rst;
+	}
 
 	/*
 	public String getNextHop(String src, String dest){

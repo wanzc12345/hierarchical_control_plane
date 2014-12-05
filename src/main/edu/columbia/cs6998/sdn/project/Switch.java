@@ -192,9 +192,11 @@ public class Switch
           for(String sw1 : sw.dpid){
               List<Short> list = sw.portOfSwitches.get(sw1);
               Map<String, Short> map = sw.linkBetweenSwitch.get(sw1);
+        	  if(map != null) {
+            	  System.out.println("There are " + map.values().toString()); 
+        	  }
               for(Short p : list){
                   if(map != null && map.containsValue(p)) {
-                	  System.out.println("There are " + map.values().toString()); 
                 	  continue;
                   }
                   

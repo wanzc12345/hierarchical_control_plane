@@ -562,7 +562,7 @@ implements IFloodlightModule, IOFMessageListener {
 			String response;
 			try {
 				response = in.readLine();
-				if(response.equalsIgnoreCase("-1")) {
+				if(response.equalsIgnoreCase("Flood")) {
 					// flood throughout subnet
 					this.writePacketOutForPacketIn(sw, pi, OFPort.OFPP_FLOOD.getValue());
 					log.info("INFO: Flow Flood sent to the switch " + sw.getStringId());

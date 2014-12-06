@@ -474,7 +474,7 @@ implements IFloodlightModule, IOFMessageListener {
 
 		if(Switch.isFirstPacket) {
 
-			apiPort = readWantedText("./resources/floodlight.properties", "net.floodlightcontroller.restserver.RestApiServer.port").substring(57, 61);
+			
 			System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 			System.out.println("Reading REST JSONS from REST API port " + apiPort);
 			System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
@@ -722,6 +722,7 @@ implements IFloodlightModule, IOFMessageListener {
 		hostIp = new ConcurrentHashMap<Integer, String>();
 		externalSwitchMac = new ArrayList<Long>();
 		switchPortList = new HashMap<String, ArrayList<Long>>();
+		apiPort = readWantedText("./resources/floodlight.properties", "net.floodlightcontroller.restserver.RestApiServer.port").substring(57, 61);
 		thisTable = new QuerySwitch2(MAX_MACS_PER_SWITCH, apiPort);
 	}
 

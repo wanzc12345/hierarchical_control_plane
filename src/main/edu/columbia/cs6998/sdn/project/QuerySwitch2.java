@@ -118,18 +118,14 @@ public class QuerySwitch2 {
 	    		  System.out.println("There are strings dpids = " + id);
 	    	  }
 	    	  
-	    	  ArrayList<String> tmp = new ArrayList<String>();
+	    	  ArrayList<Short> tmp = new ArrayList<Short>();
 	    	  String arg2[] = arg[i].split("portNumber\":");
 	    	  for (int j = 1; j < arg2.length; j++) {
 	    	  	  String arg4[] = arg2[j].split(",\"config\"");
-	    	  	  /*
 	    	  	  System.out.println(Integer.parseInt(arg4[0]) + "xxxxxxxxxxx");
-	    	  	  
 	    	  	  if (Integer.parseInt(arg4[0]) < 65534) {
 	    	  		  tmp.add(Short.parseShort(arg4[0]));
 	    		  }
-	    		  */
-	    	  	tmp.add(arg4[0]);
 	    	  }
 	    	  controller.portOfSwitches.put(arg3[1].substring(3, 26), tmp);
 	    	  

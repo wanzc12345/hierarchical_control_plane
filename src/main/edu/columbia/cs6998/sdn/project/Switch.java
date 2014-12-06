@@ -593,12 +593,16 @@ public class Switch
 			}
     	}
     	else if (Short.parseShort(argString[1]) == match.getInputPort()) {
+    		System.out.println("switch"+sw.getStringId()+"outputPort is inputPort");
             log.trace("ignoring packet that arrived on same port as learned destination:"
                     + " switch {} dest MAC {} port {}",
                     new Object[]{ sw, HexString.toHexString(destMac), this.getFromPortMap(sw, destMac) });
         }
     	else {
-    		
+    		short outputPort = Short.parseShort(argString[1]);
+    		if(!sw.getStringId().equals(argString(0)))
+    				outputPort = this.thisTable.localSwitchGraph.getNextHopPort(sw.getStringId(), argString[0]);
+    		System.out.println("switch"+sw.getStringId()+":forward to port"+outputPort);
             match.setWildcards(((Integer)sw.getAttribute(IOFSwitch.PROP_FASTWILDCARDS)).intValue()
                     & ~OFMatch.OFPFW_DL_DST
                     & ~OFMatch.OFPFW_NW_DST_MASK);
@@ -606,7 +610,7 @@ public class Switch
 		    System.out.println("####################################################");
 		    System.out.println("Context: {Else, it is out map} Writing " + ~OFMatch.OFPFW_DL_DST + " as the destination mac into flow table of switch " + sw.getStringId());
 		    System.out.println("####################################################");
-            this.writeFlowMod(sw, OFFlowMod.OFPFC_ADD, pi.getBufferId(), match, this.thisTable.localSwitchGraph.getNextHopPort(sw.getStringId(), argString[0]), sw.getId());
+            this.writeFlowMod(sw, OFFlowMod.OFPFC_ADD, pi.getBufferId(), match, outputPort, sw.getId());
     	}
     	
     	try {

@@ -499,7 +499,7 @@ public class Switch
     		}
     	
     		out.println("add gswitch " + virtualPort.toString() + " " + Id.toString());
-    		System.out.println("Command add gswitch sent to the Parent by " + this.cName);
+    		System.out.println("Command add gswitch sent to the Parent by packet in from switch " + sw.getStringId());
     		String response;
     		try {
 				response = in.readLine();
@@ -509,7 +509,7 @@ public class Switch
 				System.out.println("Gswitch Name received from the Parent is " + this.GSWITCH_ID);
 				System.out.println("-------------------------------------------------------");
 				System.out.println("-------------------------------------------------------");			
-				System.out.println("Response received from the Parent wass " + response);
+				System.out.println("Response received from the Parent was " + response);
 				System.out.println("-------------------------------------------------------");
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -526,10 +526,13 @@ public class Switch
         if(!(externalSwitchMac.contains(sourceMac) || this.hostIp.containsKey(sourceIp))) {
             Short virtualPort = this.translate(sw, pi);
     		out.println("packetin " + this.GSWITCH_ID + " " + virtualPort + " " + sourceMac + " " + sourceIp);
-    		System.out.println("Command: packetin sent to the Parent for sourceIp " + sourceIp);
+    		System.out.println("Command: packetin sent to the Parent for sourceIp " + sourceIp + " by switch " + sw.getStringId());
         	String device = null;
     		try {
     			device = in.readLine();
+    			System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    			System.out.println("The device is " + device);
+    			System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 				if("Switch".equalsIgnoreCase(device)) externalSwitchMac.add(sourceMac);
 				else if("Host".equalsIgnoreCase(device)) this.hostIp.put(sourceIp, sw.getStringId() + " " + inputPort.toString());
     		} catch (IOException e) {
@@ -547,14 +550,14 @@ public class Switch
 		System.out.println("hostIp:"+hostIp);
     	if(!this.hostIp.containsKey(destIp)) {
     		out.println("getvport " + this.GSWITCH_ID + " ip " + destIp);
-    		System.out.println("Command: getvport sent to the Parent for destIp " + destIp);
+    		System.out.println("Command: getvport sent to the Parent for destIp " + destIp + " by switch " + sw.getStringId());
     		String response;
     		try {
 				response = in.readLine();
 					if(response.equalsIgnoreCase("Flood")) {
 						// flood throughout subnet
 						this.writePacketOutForPacketIn(sw, pi, OFPort.OFPP_FLOOD.getValue());
-						log.info("INFO: Flow Flood sent to the switch");
+						log.info("INFO: Flow Flood sent to the switch " + sw.getStringId());
 
 					} else if(response != null) {
 						// forward along path as this is a host
@@ -608,7 +611,7 @@ public class Switch
                     & ~OFMatch.OFPFW_NW_DST_MASK);
             // CS6998: Fill out the following ????
 		    System.out.println("####################################################");
-		    System.out.println("Context: {Else, it is out map} Writing " + ~OFMatch.OFPFW_DL_DST + " as the destination mac into flow table of switch " + sw.getStringId());
+		    System.out.println("Context: {Else, destIp is in our map} Writing " + ~OFMatch.OFPFW_DL_DST + " as the destination mac into flow table of switch " + sw.getStringId());
 		    System.out.println("####################################################");
             this.writeFlowMod(sw, OFFlowMod.OFPFC_ADD, pi.getBufferId(), match, outputPort, sw.getId());
     	}

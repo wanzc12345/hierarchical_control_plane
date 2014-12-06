@@ -200,7 +200,7 @@ public class Graph {
 		   for(String sw1 : adjMap.keySet()){
 			   Map<String, Short> map = adjMap.get(sw1);
 			   j++;
-			   tmp1 += "g.nodes.push({id:" + "'n' + " + "'" + sw1 + "'" + ",label:" + sw1 + ", x:Math.random(),y:Math.random(),size:0.3,color:'#666'});";
+			   tmp1 += "g.nodes.push({id:" + "'n' + " + "'" + sw1 + "'" + ",label: '" + sw1 + "', x:Math.random(),y:Math.random(),size:0.3,color:'#666'});";
 			   for(String sw2 : map.keySet()){
 				   i++;
 				   tmp2 += "g.edges.push({id: 'e' + " + Integer.toString(i) +",source: " + "'n' + " + "'" + sw1 + "'" + ",target: " + "'n' + " + "'" + sw2 + "'" + ",size: 0.2,color: '#ccc'});";

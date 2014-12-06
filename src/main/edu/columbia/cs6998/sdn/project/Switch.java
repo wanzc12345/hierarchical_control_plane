@@ -600,7 +600,7 @@ public class Switch
         }
     	else {
     		short outputPort = Short.parseShort(argString[1]);
-    		if(!sw.getStringId().equals(argString(0)))
+    		if(!sw.getStringId().equals(argString[0]))
     				outputPort = this.thisTable.localSwitchGraph.getNextHopPort(sw.getStringId(), argString[0]);
     		System.out.println("switch"+sw.getStringId()+":forward to port"+outputPort);
             match.setWildcards(((Integer)sw.getAttribute(IOFSwitch.PROP_FASTWILDCARDS)).intValue()

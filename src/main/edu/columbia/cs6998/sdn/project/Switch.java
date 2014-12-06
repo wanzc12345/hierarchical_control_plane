@@ -165,7 +165,7 @@ public class Switch
     
     protected List<Long> externalHostMac;
     
-    protected String cName = "Controller1";
+    protected static String cName = "Controller1";
     
     //add by Yuanhui
     //
@@ -183,7 +183,7 @@ public class Switch
     
     @Override
     public String getName() {
-        return "switch";
+        return Switch.cName;
     }
 
     //project
@@ -200,9 +200,9 @@ public class Switch
               Map<String, Short> map = sw.linkBetweenSwitch.get(sw1);
         	  if(map != null) {
         		  for(Short val : map.values()) {
-	        		  System.out.println("*******************************************************************8");
+	        		  System.out.println("*******************************************************************");
 	            	  System.out.println("The link between switches is " + val); 
-	        		  System.out.println("*******************************************************************8");
+	        		  System.out.println("*******************************************************************");
         		  }
         	  }
               for(Short p : list){
@@ -546,7 +546,7 @@ public class Switch
 		
     	if(!this.hostIp.containsKey(destIp)) {
     		out.println("getvport " + this.GSWITCH_ID + " ip " + destIp);
-    		System.out.printf("Command: getvport sent to the Parent for destIp", destIp);
+    		System.out.println("Command: getvport sent to the Parent for destIp " + destIp);
     		String response;
     		try {
 				response = in.readLine();
@@ -556,7 +556,7 @@ public class Switch
 						log.info("INFO: Flow Flood sent to the switch");
 
 					} else if(response != null) {
-						// forward along path
+						// forward along path as this is a host
 						String switchIdPort = this.translateback(Short.parseShort(response));
 						String[] argSwitchPort = switchIdPort.split(" ");
 						String swId = argSwitchPort[0];
@@ -566,6 +566,9 @@ public class Switch
 						    		& ~OFMatch.OFPFW_NW_DST_MASK);
 				            // CS6998: Fill out the following ????
 						    System.out.println("set up match" + Short.parseShort(argSwitchPort[1]));
+						    System.out.println("####################################################");
+						    System.out.println("Context: {response != null} Writing " + ~OFMatch.OFPFW_DL_DST + " as the destination mac into flow table of switch " + sw.getStringId());
+						    System.out.println("####################################################");
 				            this.writeFlowMod(sw, OFFlowMod.OFPFC_ADD, pi.getBufferId(), match, Short.parseShort(argSwitchPort[1]), sw.getId());
 						}
 						else {
@@ -575,6 +578,9 @@ public class Switch
 						    		& ~OFMatch.OFPFW_NW_DST_MASK);
 				            // CS6998: Fill out the following ????
 							System.out.println("set up match ----- " + outputPort);
+						    System.out.println("####################################################");
+						    System.out.println("Context: {after response != null} Writing " + ~OFMatch.OFPFW_DL_DST + " as the destination mac into flow table of switch " + sw.getStringId());
+						    System.out.println("####################################################");
 				            this.writeFlowMod(sw, OFFlowMod.OFPFC_ADD, pi.getBufferId(), match, outputPort, sw.getId());
 						}
 						
@@ -596,6 +602,9 @@ public class Switch
                     & ~OFMatch.OFPFW_DL_DST
                     & ~OFMatch.OFPFW_NW_DST_MASK);
             // CS6998: Fill out the following ????
+		    System.out.println("####################################################");
+		    System.out.println("Context: {Else, it is out map} Writing " + ~OFMatch.OFPFW_DL_DST + " as the destination mac into flow table of switch " + sw.getStringId());
+		    System.out.println("####################################################");
             this.writeFlowMod(sw, OFFlowMod.OFPFC_ADD, pi.getBufferId(), match, this.thisTable.localSwitchGraph.getNextHopPort(sw.getStringId(), argString[0]), sw.getId());
     	}
     	

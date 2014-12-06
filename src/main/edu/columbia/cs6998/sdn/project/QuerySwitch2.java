@@ -105,22 +105,32 @@ public class QuerySwitch2 {
 	 
 	    if ((inputLine = bufferedRead.readLine()) != null)
 	    {
+	    	//System.out.println(inputLine);
+	    	
 	      String arg[] = inputLine.split("inetAddress");	
+	      System.out.println(arg.length + "!!!!!!!!");
+	      //for (int i = 1; i < arg.length; i++) 
+	      //	  System.out.println(arg[i] + "pppppppppppppppp");
+	      
 	      for (int i = 1; i < arg.length; i++) { 
 	    	  String arg3[] = arg[i].split("dpid");
 	    	  for(String id : arg3) {
 	    		  System.out.println("There are strings dpids = " + id);
 	    	  }
+	    	  
 	    	  ArrayList<Short> tmp = new ArrayList<Short>();
 	    	  String arg2[] = arg[i].split("portNumber\":");
 	    	  for (int j = 1; j < arg2.length; j++) {
-	    		  String arg4[] = arg2[j].split(",\"config\"");
-	    		  if (Integer.parseInt(arg4[0]) < 65534) {
-	    			  tmp.add(Short.parseShort(arg4[0]));
+	    	  	  String arg4[] = arg2[j].split(",\"config\"");
+	    	  	  System.out.println(Integer.parseInt(arg4[0]) + "xxxxxxxxxxx");
+	    	  	  if (Integer.parseInt(arg4[0]) < 65534) {
+	    	  		  tmp.add(Short.parseShort(arg4[0]));
 	    		  }
 	    	  }
 	    	  controller.portOfSwitches.put(arg3[1].substring(3, 26), tmp);
+	    	  
 	      }
+	      
 	    }
 	    bufferedRead.close();
 	}	

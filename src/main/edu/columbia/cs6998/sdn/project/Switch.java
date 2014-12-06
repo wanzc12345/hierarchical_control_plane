@@ -551,7 +551,7 @@ public class Switch
     		String response;
     		try {
 				response = in.readLine();
-					if(response.equalsIgnoreCase("Flood")) {
+					if(response.equalsIgnoreCase("-1")) {
 						// flood throughout subnet
 						this.writePacketOutForPacketIn(sw, pi, OFPort.OFPP_FLOOD.getValue());
 						log.info("INFO: Flow Flood sent to the switch");
@@ -559,6 +559,7 @@ public class Switch
 					} else if(response != null) {
 						// forward along path as this is a host
 						String switchIdPort = this.translateback(Short.parseShort(response));
+						
 						String[] argSwitchPort = switchIdPort.split(" ");
 						String swId = argSwitchPort[0];
 						if(swId.equals(sw.getStringId())) {
@@ -779,11 +780,14 @@ public class Switch
         	System.out.println("get switch link info");
         	thisTable.getSwitchLinkInfo();
         	} catch(IOException e) {}
+        	
         	try {
         	System.out.println("getSwitchPortNum");
         	thisTable.getSwitchPortNum();
         	} catch(IOException e) {}
            //     buildAgent();
+            
+            
 	}
 
     private void getSwitchePort(IOFSwitch sw) {
@@ -795,7 +799,8 @@ public class Switch
 				System.out.println(portNum);
 				System.out.printf("",sw.getPort(portNum).getHardwareAddress());
 				macSet.add(Ethernet.toLong(sw.getPort(portNum).getHardwareAddress()));		
-			}			
+			}		
+			if (!switchPortList.containsKey(key))
 			switchPortList.put(key, macSet);
 	        }
 

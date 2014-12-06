@@ -475,7 +475,9 @@ implements IFloodlightModule, IOFMessageListener {
 		if(Switch.isFirstPacket) {
 
 			apiPort = readWantedText("./resources/floodlight.properties", "net.floodlightcontroller.restserver.RestApiServer.port").substring(57, 61);
-			
+			System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+			System.out.println("Reading REST JSONS from REST API port " + apiPort);
+			System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 			// get the virtual port for the packet and pass to the Parent Controller
 			createControlTable();
 			buildAgent();

@@ -255,7 +255,7 @@ public class Switch
         // OFMatch match = new OFMatch();
         // match.loadFromPacket(pi.getPacketData(), pi.getInPort());
         // Long sourceMac = Ethernet.toLong(match.getDataLayerDestination());
-         System.out.println(realPortToVirtual);
+         System.out.println("realtovirtual map:"+realPortToVirtual+" switchid:"+sw.getStringId());
          short vport = realPortToVirtual.get(sw.getStringId()).get(inport);
          return vport;
     }
@@ -544,7 +544,7 @@ public class Switch
         	argString = outputSwitchPort.split(" ");
         }
 		
-		
+		System.out.println("hostIp:"+hostIp);
     	if(!this.hostIp.containsKey(destIp)) {
     		out.println("getvport " + this.GSWITCH_ID + " ip " + destIp);
     		System.out.println("Command: getvport sent to the Parent for destIp " + destIp);

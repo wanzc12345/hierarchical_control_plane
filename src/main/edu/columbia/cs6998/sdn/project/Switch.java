@@ -524,6 +524,9 @@ public class Switch
     	 * 
     	 */
         if(!(externalSwitchMac.contains(sourceMac) || this.hostIp.containsKey(sourceIp))) {
+        	System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+        	System.out.println("The input port on packet received by switch " + sw.getStringId() + " is " + inputPort);
+        	System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
             Short virtualPort = this.translate(sw, pi);
     		out.println("packetin " + this.GSWITCH_ID + " " + virtualPort + " " + sourceMac + " " + sourceIp);
     		System.out.println("Command: packetin sent to the Parent for sourceIp " + sourceIp + " by switch " + sw.getStringId());
@@ -595,15 +598,15 @@ public class Switch
 				e.printStackTrace();
 			}
     	}
-    	else if (Short.parseShort(argString[1]) == match.getInputPort()) {
-    		System.out.println("switch"+sw.getStringId()+"outputPort is inputPort");
+    	else if (outputSwitchPort.equals(sw.getStringId() + " " + match.getInputPort())) {
+    		System.out.println("switch "+sw.getStringId()+" outputPort is inputPort");
             log.trace("ignoring packet that arrived on same port as learned destination:"
                     + " switch {} dest MAC {} port {}",
                     new Object[]{ sw, HexString.toHexString(destMac), this.getFromPortMap(sw, destMac) });
         }
     	else {
     		short outputPort = Short.parseShort(argString[1]);
-    		if(!sw.getStringId().equals(argString(0)))
+    		if(!sw.getStringId().equals(argString[0]))
     				outputPort = this.thisTable.localSwitchGraph.getNextHopPort(sw.getStringId(), argString[0]);
     		System.out.println("switch"+sw.getStringId()+":forward to port"+outputPort);
             match.setWildcards(((Integer)sw.getAttribute(IOFSwitch.PROP_FASTWILDCARDS)).intValue()

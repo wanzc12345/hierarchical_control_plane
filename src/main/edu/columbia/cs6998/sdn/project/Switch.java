@@ -414,6 +414,7 @@ implements IFloodlightModule, IOFMessageListener {
 		packetOutMessage.setInPort(packetInMessage.getInPort());
 		packetOutMessage.setActionsLength((short) OFActionOutput.MINIMUM_LENGTH);
 		packetOutLength += OFActionOutput.MINIMUM_LENGTH;
+		packetOutLength += OFActionDataLayerSource.MINIMUM_LENGTH;
 
 		// set actions
 		List<OFAction> actions = new ArrayList<OFAction>(1);

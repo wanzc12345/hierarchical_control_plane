@@ -414,11 +414,13 @@ implements IFloodlightModule, IOFMessageListener {
 		packetOutMessage.setInPort(packetInMessage.getInPort());
 		packetOutMessage.setActionsLength((short) OFActionOutput.MINIMUM_LENGTH);
 		packetOutLength += OFActionOutput.MINIMUM_LENGTH;
-		packetOutLength += OFActionDataLayerSource.MINIMUM_LENGTH;
+		if(switchId!=0)
+			packetOutLength += OFActionDataLayerSource.MINIMUM_LENGTH;
 
 		// set actions
 		List<OFAction> actions = new ArrayList<OFAction>(1);
-		actions.add((OFAction) new OFActionDataLayerSource(Ethernet.toByteArray(switchId)));
+		if(switchId!=0)
+			actions.add((OFAction) new OFActionDataLayerSource(Ethernet.toByteArray(switchId)));
 		actions.add(new OFActionOutput(egressPort, (short) 0));
 		packetOutMessage.setActions(actions);
 
@@ -469,7 +471,7 @@ implements IFloodlightModule, IOFMessageListener {
 		Short inputPort = match.getInputPort();
 		log.info("Packet received with the sourceMac { " + sourceMac + " }, and destMAc { " + destMac + " }, and sourceIp { " + sourceIp + " }, and destIp { " +destIp + " }");
 		if(destIp == 0) {
-			this.writePacketOutForPacketIn(sw, pi, OFPort.OFPP_FLOOD.getValue(), sw.getId());
+			this.writePacketOutForPacketIn(sw, pi, OFPort.OFPP_FLOOD.getValue(), 0);
 			log.info("INFO: Flow Flood sent to the switch for Mininet generated packet");       	
 			return Command.CONTINUE;
 		}

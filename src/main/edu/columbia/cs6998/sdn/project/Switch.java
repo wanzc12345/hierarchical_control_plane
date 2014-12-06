@@ -413,6 +413,8 @@ implements IFloodlightModule, IOFMessageListener {
 		packetOutMessage.setBufferId(packetInMessage.getBufferId());
 		packetOutMessage.setInPort(packetInMessage.getInPort());
 		packetOutMessage.setActionsLength((short) OFActionOutput.MINIMUM_LENGTH);
+		if(switchId!=0)
+			packetOutMessage.setActionsLength((short) (OFActionOutput.MINIMUM_LENGTH+OFActionDataLayerSource.MINIMUM_LENGTH));
 		packetOutLength += OFActionOutput.MINIMUM_LENGTH;
 		if(switchId!=0)
 			packetOutLength += OFActionDataLayerSource.MINIMUM_LENGTH;
@@ -420,7 +422,7 @@ implements IFloodlightModule, IOFMessageListener {
 		// set actions
 		List<OFAction> actions = new ArrayList<OFAction>(1);
 		if(switchId!=0)
-			actions.add((OFAction) new OFActionDataLayerSource(Ethernet.toByteArray(switchId)));
+			actions.add(new OFActionDataLayerSource(Ethernet.toByteArray(switchId)));
 		actions.add(new OFActionOutput(egressPort, (short) 0));
 		packetOutMessage.setActions(actions);
 

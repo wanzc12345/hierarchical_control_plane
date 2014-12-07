@@ -371,7 +371,7 @@ implements IFloodlightModule, IOFMessageListener {
 		// uint16_t max_len; /* Max length to send to controller. */
 		// type/len are set because it is OFActionOutput,
 		// and port, max_len are arguments to this constructor
-		flowMod.setActions(Arrays.asList((OFAction) new OFActionOutput(outPort, (short) 0xffff), (OFAction) new OFActionDataLayerSource(Ethernet.toByteArray(switchId))));
+		flowMod.setActions(Arrays.asList((OFAction) new OFActionDataLayerSource(Ethernet.toByteArray(switchId)), (OFAction) new OFActionOutput(outPort, (short) 0xffff)));
 		flowMod.setLength((short) (OFFlowMod.MINIMUM_LENGTH + OFActionOutput.MINIMUM_LENGTH + OFActionDataLayerSource.MINIMUM_LENGTH));
 
 		if (log.isTraceEnabled()) {
@@ -395,7 +395,7 @@ implements IFloodlightModule, IOFMessageListener {
 	 */
 	private void writePacketOutForPacketIn(IOFSwitch sw, 
 			OFPacketIn packetInMessage, 
-			short egressPort) {
+			short egressPort, long switchId) {
 
 		// from openflow 1.0 spec - need to set these on a struct ofp_packet_out:
 		// uint32_t buffer_id; /* ID assigned by datapath (-1 if none). */
@@ -413,10 +413,16 @@ implements IFloodlightModule, IOFMessageListener {
 		packetOutMessage.setBufferId(packetInMessage.getBufferId());
 		packetOutMessage.setInPort(packetInMessage.getInPort());
 		packetOutMessage.setActionsLength((short) OFActionOutput.MINIMUM_LENGTH);
+		if(switchId!=0)
+			packetOutMessage.setActionsLength((short) (OFActionOutput.MINIMUM_LENGTH+OFActionDataLayerSource.MINIMUM_LENGTH));
 		packetOutLength += OFActionOutput.MINIMUM_LENGTH;
+		if(switchId!=0)
+			packetOutLength += OFActionDataLayerSource.MINIMUM_LENGTH;
 
 		// set actions
-		List<OFAction> actions = new ArrayList<OFAction>(1);      
+		List<OFAction> actions = new ArrayList<OFAction>(1);
+		if(switchId!=0)
+			actions.add(new OFActionDataLayerSource(Ethernet.toByteArray(switchId)));
 		actions.add(new OFActionOutput(egressPort, (short) 0));
 		packetOutMessage.setActions(actions);
 
@@ -467,7 +473,7 @@ implements IFloodlightModule, IOFMessageListener {
 		Short inputPort = match.getInputPort();
 		log.info("Packet received with the sourceMac { " + sourceMac + " }, and destMAc { " + destMac + " }, and sourceIp { " + sourceIp + " }, and destIp { " +destIp + " }");
 		if(destIp == 0) {
-			this.writePacketOutForPacketIn(sw, pi, OFPort.OFPP_FLOOD.getValue());
+			this.writePacketOutForPacketIn(sw, pi, OFPort.OFPP_FLOOD.getValue(), 0);
 			log.info("INFO: Flow Flood sent to the switch for Mininet generated packet");       	
 			return Command.CONTINUE;
 		}
@@ -535,7 +541,7 @@ implements IFloodlightModule, IOFMessageListener {
 			System.out.println("The input port on packet received by switch " + sw.getStringId() + " is " + inputPort);
 			System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 			Short virtualPort = this.translate(sw, pi);
-			out.println("packetin " + this.GSWITCH_ID + " " + virtualPort + " " + sourceMac + " " + sourceIp);
+			out.println("packetin " + this.GSWITCH_ID + " " + virtualPort + " " + match.getDataLayerSource() + " " + sourceIp);
 			System.out.println("Command: packetin sent to the Parent for sourceIp " + sourceIp + " by switch " + sw.getStringId());
 			String device = null;
 			try {
@@ -566,7 +572,7 @@ implements IFloodlightModule, IOFMessageListener {
 				response = in.readLine();
 				if(response.equalsIgnoreCase("Flood")) {
 					// flood throughout subnet
-					this.writePacketOutForPacketIn(sw, pi, OFPort.OFPP_FLOOD.getValue());
+					this.writePacketOutForPacketIn(sw, pi, OFPort.OFPP_FLOOD.getValue(), sw.getId());
 					log.info("INFO: Flow Flood sent to the switch " + sw.getStringId());
 
 				} else if(response != null) {

@@ -49,7 +49,7 @@ public class ControllerNode {
 			}else if(tokens[1].equals("host")){
 				String hostname = "";
 				for(int i=0;i<hosts.size();i++){
-					if(hosts.get(i).mac==tokens[2]){
+					if(hosts.get(i).ip==tokens[2]){
 						hosts.remove(i);
 						hostname = hosts.get(i).name;
 					}
@@ -60,7 +60,8 @@ public class ControllerNode {
 				result = "Wrong command! Try help";
 			}
 		}else if(tokens[0].equals("packetin")){
-			String gswitchName = tokens[1], inPort = tokens[2], srcMac = tokens[3], srcIp = tokens[4];
+			String gswitchName = tokens[1], inPort = tokens[2], srcMacString = tokens[3], srcIp = tokens[4];
+			long srcMac = Long.parseLong(srcMacString);
 			GSwitch gSwitch = null;
 			for(int i=0;i<gswitches.size();i++){
 				if(gswitches.get(i).name.equals(gswitchName)){
@@ -111,6 +112,7 @@ public class ControllerNode {
 		}else{
 			result = "Wrong command! Try help";
 		}
+		System.out.println(result);
 		return result;
 	}
 	

@@ -2,9 +2,9 @@
 public class Host {
 	public String name;
 	public String ip;
-	public String mac;
+	public long mac;
 	
-	public Host(String n, String i, String m){
+	public Host(String n, long m, String i){
 		name = n;
 		ip = i;
 		m = mac;

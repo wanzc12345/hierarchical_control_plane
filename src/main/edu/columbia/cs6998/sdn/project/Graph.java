@@ -130,7 +130,7 @@ public class Graph {
 				rst = rst + ssw + "->" + dsw + " ";
 			}
 		}
-		System.out.println(rst);
+		//System.out.println(rst);
 		return rst;
 	}
 

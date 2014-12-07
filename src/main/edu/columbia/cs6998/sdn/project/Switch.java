@@ -543,7 +543,7 @@ implements IFloodlightModule, IOFMessageListener {
 			System.out.println("The input port on packet received by switch " + sw.getStringId() + " is " + inputPort);
 			System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 			Short virtualPort = this.translate(sw, pi);
-			out.println("packetin " + this.GSWITCH_ID + " " + virtualPort + " " + match.getDataLayerSource() + " " + sourceIp);
+			out.println("packetin " + this.GSWITCH_ID + " " + virtualPort + " " + sourceMac + " " + sourceIp);
 			System.out.println("Command: packetin sent to the Parent for sourceIp " + sourceIp + " by switch " + sw.getStringId());
 			String device = null;
 			try {

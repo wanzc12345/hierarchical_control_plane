@@ -14,7 +14,7 @@ public class ControllerNode {
 	public String parentAddress;
 	public List<String> childrenAddresses;
 	public List<GSwitch> gswitches;
-	public HashMap<String, String> switchGswitchMap;
+	public HashMap<Long, String> switchGswitchMap;
 	public List<Host> hosts;
 	public Graph topology;
 	public int port;
@@ -29,7 +29,7 @@ public class ControllerNode {
 				String[] switchIds = tokens[3].split(";");
 				GSwitch gswitch = new GSwitch("gs"+String.valueOf(gswitches.size()+1), ports.length, ports, switchIds);
 				for(int i=0;i<switchIds.length;i++){
-					switchGswitchMap.put(switchIds[i], gswitch.name);
+					switchGswitchMap.put(SidToLong(switchIds[i]), gswitch.name);
 				}
 				gswitches.add(gswitch);
 				topology.addNode(gswitch.name);
@@ -49,7 +49,7 @@ public class ControllerNode {
 			}else if(tokens[1].equals("host")){
 				String hostname = "";
 				for(int i=0;i<hosts.size();i++){
-					if(hosts.get(i).mac==tokens[2]){
+					if(hosts.get(i).ip==tokens[2]){
 						hosts.remove(i);
 						hostname = hosts.get(i).name;
 					}
@@ -60,7 +60,8 @@ public class ControllerNode {
 				result = "Wrong command! Try help";
 			}
 		}else if(tokens[0].equals("packetin")){
-			String gswitchName = tokens[1], inPort = tokens[2], srcMac = tokens[3], srcIp = tokens[4];
+			String gswitchName = tokens[1], inPort = tokens[2], srcMacString = tokens[3], srcIp = tokens[4];
+			long srcMac = Long.parseLong(srcMacString);
 			GSwitch gSwitch = null;
 			for(int i=0;i<gswitches.size();i++){
 				if(gswitches.get(i).name.equals(gswitchName)){
@@ -111,6 +112,7 @@ public class ControllerNode {
 		}else{
 			result = "Wrong command! Try help";
 		}
+		System.out.println(result);
 		return result;
 	}
 	
@@ -152,7 +154,7 @@ public class ControllerNode {
 		childrenAddresses = new ArrayList<String>();
 		gswitches = new ArrayList<GSwitch>();
 		hosts = new ArrayList<Host>();
-		switchGswitchMap = new HashMap<String, String>();
+		switchGswitchMap = new HashMap<Long, String>();
 		topology = new Graph();
 		port = 12091;
 	}
@@ -163,13 +165,58 @@ public class ControllerNode {
 		gswitches = new ArrayList<GSwitch>();
 		hosts = new ArrayList<Host>();
 		topology = new Graph();
-		switchGswitchMap = new HashMap<String, String>();
+		switchGswitchMap = new HashMap<Long, String>();
 		port = 12091;
 		parseConfigFile(configfilename);
 	}
 	
 	private void parseConfigFile(String filename){
 		
+	}
+	
+	public long SidToLong(String sid) {
+		if (sid.length() != 23) return -1;
+		int sec = 0;
+		int index = 0;
+		long rst = 0;
+		
+		while(sec < 8) {
+			int pos = 3 * sec + index;
+			
+			rst = rst * 16 + charToLong(sid.charAt(pos));
+			if (index == 0) index++;
+			else if (index == 1) {
+				index = 0;
+				sec++;
+			}
+			
+		}
+		
+		return rst;
+	}
+	
+	public long charToLong(char c) {
+		long rst = 10;
+		switch(c) {
+			case '0' : rst = 0; break;
+			case '1' : rst = 1; break;
+			case '2' : rst = 2; break;
+			case '3' : rst = 3; break;
+			case '4' : rst = 4; break;
+			case '5' : rst = 5; break;
+			case '6' : rst = 6; break;
+			case '7' : rst = 7; break;
+			case '8' : rst = 8; break;
+			case '9' : rst = 9; break;
+			case 'a' : rst = 10; break;
+			case 'b' : rst = 11; break;
+			case 'c' : rst = 12; break;
+			case 'd' : rst = 13; break;
+			case 'e' : rst = 14; break;
+			case 'f' : rst = 15; break;
+			
+		}
+		return rst;
 	}
 	
 	void run() throws IOException{

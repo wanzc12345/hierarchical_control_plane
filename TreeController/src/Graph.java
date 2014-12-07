@@ -96,9 +96,6 @@ public class Graph {
 		for (String sw : connectMap.keySet()) {
 			Map<String, Short> map = connectMap.get(sw);
 			//System.out.println(sw);
-			for (String sw2 : connectMap.keySet()) {
-				System.out.println("connect to " + sw2 + " by port " + map.get(sw2));
-			}
 		}
 		return true;
 	}
@@ -150,7 +147,6 @@ public class Graph {
 				rst = rst + ssw + "->" + dsw + " ";
 			}
 		}
-		System.out.println(rst);
 		return rst;
 	}
 

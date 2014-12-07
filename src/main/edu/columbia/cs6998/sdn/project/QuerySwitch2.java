@@ -94,6 +94,7 @@ public class QuerySwitch2 {
 	    	  localSwitchGraph.addEdge((String)arg[i].subSequence(0, 23), (String) arg[i].subSequence(71, 94), Short.parseShort(s[0]));
 	      }
 	    }
+	   System.out.println("Controller dpid:"+controller.dpid);
 	   localSwitchGraph.buildConnectInfo(controller.dpid);
 	     
 	    bufferedRead.close();
@@ -119,7 +120,7 @@ public class QuerySwitch2 {
 			  for(int i = 0; i < array.size(); ++i){
 				  sw[i] = (JSONObject)array.get(i);
 				  String swid = (String) sw[i].get("dpid");
-				  controller.dpid.add(swid);
+				  //controller.dpid.add(swid);
 				  JSONArray port = (JSONArray)sw[i].get("ports");
 				  ArrayList<Short> list = new ArrayList<Short>();
 				  for(int j = 1; j < port.size(); ++j){

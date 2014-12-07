@@ -802,13 +802,13 @@ implements IFloodlightModule, IOFMessageListener {
 
 	//modified by Yuanhui
 	private void createControlTable() throws ParseException {
-		/*
+		
 		try {
 			
 			thisTable.getSwitchID();
 			System.out.println("info");
 		} catch(IOException e) {}
-		*/
+		
 		try {
 			System.out.println("get switch 10D");
 			System.out.println("getSwitchPortNum");

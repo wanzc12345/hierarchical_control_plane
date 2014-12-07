@@ -1,4 +1,7 @@
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -23,6 +26,10 @@ public class ControllerNode {
 		String result = "";
 		String[] tokens = command.split(" ");
 
+		if(tokens[0].equals("add")||tokens[0].equals("remove")||tokens[0].equals("packetin")){
+			
+		}
+		
 		if(tokens[0].equals("add")){
 			if(tokens[1].equals("gswitch")){
 				String[] ports = tokens[2].split(";");
@@ -111,6 +118,24 @@ public class ControllerNode {
 		}else if(tokens[0].equals("drawtopology")){
 			topology.drawGraph();
 			result = "Ok";
+		}else if(tokens[0].equals("backup")){
+			
+		}else if(tokens[0].equals("restore")){
+			try {
+				BufferedReader br = new BufferedReader(new FileReader("tree.log"));
+				String line = "";
+				while((line=br.readLine())!=null){
+					process(line);
+				}
+				br.close();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 		}else{
 			result = "Wrong command! Try help";
 		}
@@ -159,6 +184,11 @@ public class ControllerNode {
 		switchGswitchMap = new HashMap<Long, String>();
 		topology = new Graph();
 		port = 12091;
+		
+		File file = new File("tree.log");
+		if(file.exists()&&!file.isDirectory()){
+			file.delete();
+		}
 	}
 	
 	public ControllerNode(String configfilename) throws IOException{
@@ -169,6 +199,11 @@ public class ControllerNode {
 		topology = new Graph();
 		switchGswitchMap = new HashMap<Long, String>();
 		port = 12091;
+		
+		File file = new File("tree.log");
+		if(file.exists()&&!file.isDirectory()){
+			file.delete();
+		}
 		parseConfigFile(configfilename);
 	}
 	

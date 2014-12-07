@@ -1,5 +1,4 @@
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -32,7 +31,7 @@ public class ControllerNode {
 		if(log){
 			if(tokens[0].equals("add")||tokens[0].equals("remove")||tokens[0].equals("packetin")){
 				try {
-					PrintWriter pw = new PrintWriter(new FileWriter("tree.log"));
+					PrintWriter pw = new PrintWriter(new FileWriter(logfilename));
 					pw.println(command);
 					pw.close();
 				} catch (IOException e) {
@@ -134,12 +133,16 @@ public class ControllerNode {
 			
 		}else if(tokens[0].equals("restore")){
 			try {
-				BufferedReader br = new BufferedReader(new FileReader("tree.log"));
+				BufferedReader br = new BufferedReader(new FileReader(tokens[1]));
 				String line = "";
 				while((line=br.readLine())!=null){
 					process(line);
 				}
 				br.close();
+//				File file = new File(logfilename);
+//				if(file.exists()&&!file.isDirectory()){
+//					file.delete();
+//				}
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -199,10 +202,6 @@ public class ControllerNode {
 		log = false;
 		logfilename = "tree.log";
 		
-		File file = new File(logfilename);
-		if(file.exists()&&!file.isDirectory()){
-			file.delete();
-		}
 	}
 	
 	public ControllerNode(String configfilename) throws IOException{
@@ -217,11 +216,6 @@ public class ControllerNode {
 		logfilename = "";
 		
 		parseConfigFile(configfilename);
-		
-		File file = new File(logfilename);
-		if(file.exists()&&!file.isDirectory()){
-			file.delete();
-		}
 	}
 	
 	private void parseConfigFile(String filename){
@@ -296,6 +290,7 @@ public class ControllerNode {
 	}
 	
 	void run() throws IOException{
+		System.out.println("Tree controller started.");
 		ServerSocket serverSocket = new ServerSocket(port);
 		Socket clientSocket;
 		while((clientSocket=serverSocket.accept())!=null){

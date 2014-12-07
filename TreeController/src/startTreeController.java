@@ -1,7 +1,7 @@
 import java.io.IOException;
 
 
-public class start {
+public class startTreeController {
 
 	public static void main(String[] args) throws IOException {
 		//main access

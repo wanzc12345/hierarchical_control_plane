@@ -663,7 +663,7 @@ implements IFloodlightModule, IOFMessageListener {
 		case PACKET_IN:
 			try {
 				return this.processPacketInMessage(sw, (OFPacketIn) msg, cntx);
-			} catch (ParseException e) {
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}

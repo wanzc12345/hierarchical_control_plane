@@ -12,6 +12,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
 
 
 
@@ -50,6 +55,7 @@ public class QuerySwitch2 {
 	      String arg[] = inputLine.split("dpid\":\"");      
 	      for (int i = 1; i < arg.length; i++) {
 	    	  localSwitchGraph.addNode(arg[i].substring(0, 23));
+	    	  
 	    	  controller.dpid.add(arg[i].substring(0, 23));   	
 	    	  
           }
@@ -94,7 +100,7 @@ public class QuerySwitch2 {
 	}
 	
 	
-	public void getSwitchPortNum() throws IOException {
+	public void getSwitchPortNum() throws IOException, ParseException {
 		String httpURL = "http://localhost:" + restApiPort + "/wm/core/controller/switches/json";
 	    URL myurlSwitch = new URL(httpURL);
 	    HttpURLConnection connection = (HttpURLConnection)myurlSwitch.openConnection();
@@ -103,35 +109,28 @@ public class QuerySwitch2 {
 	    BufferedReader bufferedRead = new BufferedReader(inputStreamReader);
 	    String inputLine = null;    
 	 
-	    if ((inputLine = bufferedRead.readLine()) != null)
-	    {
-	    	//System.out.println(inputLine);
-	    	
-	      String arg[] = inputLine.split("inetAddress");	
-	      System.out.println(arg.length + "!!!!!!!!");
-	      //for (int i = 1; i < arg.length; i++) 
-	      //	  System.out.println(arg[i] + "pppppppppppppppp");
-	      
-	      for (int i = 1; i < arg.length; i++) { 
-	    	  String arg3[] = arg[i].split("dpid");
-	    	  for(String id : arg3) {
-	    		  System.out.println("There are strings dpids = " + id);
-	    	  }
-	    	  
-	    	  ArrayList<Short> tmp = new ArrayList<Short>();
-	    	  String arg2[] = arg[i].split("portNumber\":");
-	    	  for (int j = 1; j < arg2.length; j++) {
-	    	  	  String arg4[] = arg2[j].split(",\"config\"");
-	    	  	  System.out.println(Integer.parseInt(arg4[0]) + "xxxxxxxxxxx");
-	    	  	  if (Integer.parseInt(arg4[0]) < 65534) {
-	    	  		  tmp.add(Short.parseShort(arg4[0]));
-	    		  }
-	    	  }
-	    	  controller.portOfSwitches.put(arg3[1].substring(3, 26), tmp);
-	    	  
-	      }
-	      
-	    }
+	    if ((inputLine = bufferedRead.readLine()) != null) {
+			System.out.println(inputLine);
+			
+			  JSONParser parser=new JSONParser();
+	          controllerInfo coninfo = new controllerInfo();
+			  Object obj=parser.parse(inputLine);
+			  JSONArray array=(JSONArray)obj;
+			  JSONObject[] sw = new JSONObject[array.size()];
+			  for(int i = 0; i < array.size(); ++i){
+				  sw[i] = (JSONObject)array.get(i);
+				  String swid = (String) sw[i].get("dpid");
+				  coninfo.dpid.add(swid);
+				  JSONArray port = (JSONArray)sw[i].get("ports");
+				  ArrayList<Short> list = new ArrayList<Short>();
+				  for(int j = 1; j < port.size(); ++j){
+					  JSONObject tmp = (JSONObject) port.get(j);
+					  Short portnum =Short.parseShort(tmp.get("portNumber").toString());
+					  list.add(portnum);
+					  coninfo.portOfSwitches.put(swid, list);
+				  }
+			  }
+		}
 	    bufferedRead.close();
 	}	
 

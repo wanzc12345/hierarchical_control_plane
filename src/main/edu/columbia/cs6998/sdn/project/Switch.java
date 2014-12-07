@@ -62,6 +62,7 @@ import net.floodlightcontroller.core.module.IFloodlightModule;
 import net.floodlightcontroller.core.module.IFloodlightService;
 import net.floodlightcontroller.packet.Ethernet;
 
+import org.json.simple.parser.ParseException;
 import org.openflow.protocol.OFError;
 import org.openflow.protocol.OFFlowMod;
 import org.openflow.protocol.OFFlowRemoved;
@@ -452,9 +453,10 @@ implements IFloodlightModule, IOFMessageListener {
 	 * @param pi
 	 * @param cntx
 	 * @return
+	 * @throws ParseException 
 	 */
 
-	private Command processPacketInMessage(IOFSwitch sw, OFPacketIn pi, FloodlightContext cntx) {
+	private Command processPacketInMessage(IOFSwitch sw, OFPacketIn pi, FloodlightContext cntx) throws ParseException {
 
 		// Added by Adeyemi
 		List<Object> socketList = this.getSocketIO(null, this.PARENT_PORT);
@@ -659,7 +661,12 @@ implements IFloodlightModule, IOFMessageListener {
 	public Command receive(IOFSwitch sw, OFMessage msg, FloodlightContext cntx) {
 		switch (msg.getType()) {
 		case PACKET_IN:
-			return this.processPacketInMessage(sw, (OFPacketIn) msg, cntx);
+			try {
+				return this.processPacketInMessage(sw, (OFPacketIn) msg, cntx);
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			/*
             case FLOW_REMOVED:
                 return this.processFlowRemovedMessage(sw, (OFFlowRemoved) msg);
@@ -794,21 +801,24 @@ implements IFloodlightModule, IOFMessageListener {
 	}
 
 	//modified by Yuanhui
-	private void createControlTable() {
+	private void createControlTable() throws ParseException {
+		/*
 		try {
-			System.out.println("get switch 10D");
+			
 			thisTable.getSwitchID();
 			System.out.println("info");
+		} catch(IOException e) {}
+		*/
+		try {
+			System.out.println("get switch 10D");
+			System.out.println("getSwitchPortNum");
+			thisTable.getSwitchPortNum();
 		} catch(IOException e) {}
 		try {
 			System.out.println("get switch link info");
 			thisTable.getSwitchLinkInfo();
 		} catch(IOException e) {}
-
-		try {
-			System.out.println("getSwitchPortNum");
-			thisTable.getSwitchPortNum();
-		} catch(IOException e) {}
+		
 		//     buildAgent();
 
 

@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -21,13 +22,24 @@ public class ControllerNode {
 	public List<Host> hosts;
 	public Graph topology;
 	public int port;
+	public boolean log;
+	public String logfilename;
 	
 	public String process(String command){
 		String result = "";
 		String[] tokens = command.split(" ");
-
-		if(tokens[0].equals("add")||tokens[0].equals("remove")||tokens[0].equals("packetin")){
-			
+		
+		if(log){
+			if(tokens[0].equals("add")||tokens[0].equals("remove")||tokens[0].equals("packetin")){
+				try {
+					PrintWriter pw = new PrintWriter(new FileWriter("tree.log"));
+					pw.println(command);
+					pw.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 		
 		if(tokens[0].equals("add")){
@@ -184,8 +196,10 @@ public class ControllerNode {
 		switchGswitchMap = new HashMap<Long, String>();
 		topology = new Graph();
 		port = 12091;
+		log = false;
+		logfilename = "tree.log";
 		
-		File file = new File("tree.log");
+		File file = new File(logfilename);
 		if(file.exists()&&!file.isDirectory()){
 			file.delete();
 		}
@@ -199,16 +213,41 @@ public class ControllerNode {
 		topology = new Graph();
 		switchGswitchMap = new HashMap<Long, String>();
 		port = 12091;
+		log = false;
+		logfilename = "";
 		
-		File file = new File("tree.log");
+		parseConfigFile(configfilename);
+		
+		File file = new File(logfilename);
 		if(file.exists()&&!file.isDirectory()){
 			file.delete();
 		}
-		parseConfigFile(configfilename);
 	}
 	
 	private void parseConfigFile(String filename){
-		
+		try {
+			BufferedReader br = new BufferedReader(new FileReader("config.txt"));
+			String line = "";
+			while((line=br.readLine())!=null){
+				String[] tokens = line.split("=");
+				if(tokens[0].equals("parent")){
+					parentAddress = tokens[1];
+				}else if(tokens[0].equals("port")){
+					port = Integer.parseInt(tokens[1]);
+				}else if(tokens[0].equals("log")){
+					log = Boolean.getBoolean(tokens[1]);
+				}else if(tokens[0].equals("logfilename")){
+					logfilename = tokens[1];
+				}
+			}
+			br.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public long SidToLong(String sid) {

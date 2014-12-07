@@ -9,7 +9,6 @@ public class SwitchIdToLong {
 		int sec = 0;
 		int index = 0;
 		long rst = 0;
-		long multiNum = 1;
 		
 		while(sec < 8) {
 			int pos = 3 * sec + index;

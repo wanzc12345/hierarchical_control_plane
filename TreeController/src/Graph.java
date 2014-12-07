@@ -143,7 +143,7 @@ public class Graph {
 		return rst;
 	}
 
-public boolean drawGraph(){
+		public boolean drawGraph(){
 
 			  try {
 				  String head = "<script src=\"srcjs/sigma.core.js\"></script>" + 
@@ -201,7 +201,9 @@ public boolean drawGraph(){
 			   for(String sw1 : adjMap.keySet()){
 				   Map<String, Short> map = adjMap.get(sw1);
 				   j++;
-				   tmp1 += "g.nodes.push({id:" + "'n' + " + "'" + sw1 + "'" + ",label: '" + sw1 + "', x:Math.random(),y:Math.random(),size:0.3,color:'#666'});";
+				   String ss = sw1.charAt(0) == 'g'? "0.3": "0.3";
+				   String color = sw1.charAt(0) == 'g'? "F00": "2BF";
+				   tmp1 += "g.nodes.push({id:" + "'n' + " + "'" + sw1 + "'" + ",label: '" + sw1 + "', x:Math.random(),y:Math.random(),size:" + ss + ",color:'#" + color + "'});";
 				   for(String sw2 : map.keySet()){
 					   i++;
 					   tmp2 += "g.edges.push({id: 'e' + " + Integer.toString(i) +",source: " + "'n' + " + "'" + sw1 + "'" + ",target: " + "'n' + " + "'" + sw2 + "'" + ",size: 0.2,color: '#ccc'});";

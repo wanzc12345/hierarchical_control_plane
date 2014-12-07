@@ -21,11 +21,15 @@ public class Client {
 		Scanner scanner = new Scanner(System.in);
 		String line = "";
 		while(!(line=scanner.nextLine()).equals("exit")){
-			pw.println(line);
-			pw.flush();
-			if(line.equals("shutdown"))
-				break;
-			System.out.println(br.readLine());
+			if(line.equals("help")){
+				System.out.print("fuck you");
+			}else{
+				pw.println(line);
+				pw.flush();
+				if(line.equals("shutdown"))
+					break;
+				System.out.println(br.readLine());
+			}
 			System.out.print(">");
 		}
 		

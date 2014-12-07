@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -27,19 +28,6 @@ public class ControllerNode {
 	public String process(String command){
 		String result = "";
 		String[] tokens = command.split(" ");
-		
-		if(log){
-			if(tokens[0].equals("add")||tokens[0].equals("remove")||tokens[0].equals("packetin")){
-				try {
-					PrintWriter pw = new PrintWriter(new FileWriter(logfilename));
-					pw.println(command);
-					pw.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
 		
 		if(tokens[0].equals("add")){
 			if(tokens[1].equals("gswitch")){
@@ -139,10 +127,11 @@ public class ControllerNode {
 					process(line);
 				}
 				br.close();
-//				File file = new File(logfilename);
-//				if(file.exists()&&!file.isDirectory()){
-//					file.delete();
-//				}
+				File file = new File(logfilename);
+				if(file.exists()&&!file.isDirectory()){
+					file.delete();
+				}
+				result = "Ok";
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -174,6 +163,18 @@ public class ControllerNode {
 				String line = "";
 				while((line = br.readLine())!=null){
 					System.out.println(line);
+					if(log){
+						if(line.startsWith("add")||line.startsWith("remove")||line.startsWith("packetin")){
+							try {
+								PrintWriter pwf = new PrintWriter(new FileWriter(logfilename, true));
+								pwf.println(line);
+								pwf.close();
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						}
+					}
 					if(line.equals("shutdown"))
 						System.exit(0);
 					pw.println(process(line));
@@ -229,7 +230,7 @@ public class ControllerNode {
 				}else if(tokens[0].equals("port")){
 					port = Integer.parseInt(tokens[1]);
 				}else if(tokens[0].equals("log")){
-					log = Boolean.getBoolean(tokens[1]);
+					log = Boolean.valueOf(tokens[1]);
 				}else if(tokens[0].equals("logfilename")){
 					logfilename = tokens[1];
 				}
@@ -294,7 +295,7 @@ public class ControllerNode {
 		ServerSocket serverSocket = new ServerSocket(port);
 		Socket clientSocket;
 		while((clientSocket=serverSocket.accept())!=null){
-			System.out.println("new local controller connected.");
+			System.out.println("New local controller connected.");
 			ChildThread p = new ChildThread(clientSocket);
 			new Thread(p).start();
 		}

@@ -541,7 +541,7 @@ implements IFloodlightModule, IOFMessageListener {
 		System.out.println("externalSwitchMac:"+externalSwitchMac);
 		System.out.println("hostIp:"+hostIp);
 		System.out.println("switch:"+sourceMac+" dpid:"+thisTable.controller.dpid);
-		if(!(externalSwitchMac.contains(sourceMac) || this.hostIp.containsKey(sourceIp) || thisTable.controller.dpid.containsLong(sourceMac))) {
+		if(!(externalSwitchMac.contains(sourceMac) || this.hostIp.containsKey(sourceIp) || thisTable.containsSwitchId(sourceMac))) {
 			System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 			System.out.println("The input port on packet received by switch " + sw.getStringId() + " is " + inputPort);
 			System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");

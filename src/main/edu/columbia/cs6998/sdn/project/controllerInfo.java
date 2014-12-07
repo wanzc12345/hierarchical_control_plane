@@ -16,10 +16,21 @@ public class controllerInfo {
 	//record the port information of each switch
 	public Map<String, ArrayList<Short>> portOfSwitches;
 	
+	//may no use*****
+	public ArrayList<Long> dpidLong;
+	public Map<Long, Map<Long, Short>> linkBetweenSwitchLong;
+	public Map<Long, ArrayList<Short>> portOfSwitchesLong;
+	
+	
 	public controllerInfo() {
 		dpid = new ArrayList<String>();
 		linkBetweenSwitch = new HashMap<String, Map<String, Short>>();
 		portOfSwitches = new LinkedHashMap<String, ArrayList<Short>>();
+		dpidLong = new ArrayList<Long>();
+		linkBetweenSwitchLong = new  HashMap<Long, Map<Long, Short>>();
+		portOfSwitchesLong = new HashMap<Long, ArrayList<Short>>();
+		
+		
 	}
 	
 }

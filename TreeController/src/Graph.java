@@ -68,8 +68,8 @@ public class Graph {
 		return adjMap.get(src).get(des);
 	}
 
-	public boolean buildConnectInfo(ArrayList<String> dpid) {
-		for (String sw : dpid) {
+	public boolean buildConnectInfo() {
+		for (String sw : adjMap.keySet()) {
 			ArrayList<String> visit = new ArrayList<String>();
 			ArrayList<String> neibourList = new ArrayList<String>();
 			Map<String, Short> connect = new HashMap<String, Short>();
@@ -125,6 +125,17 @@ public class Graph {
 		return -1;
 	}
 
+	public short getNextHopPortForNonLocal(String src, String des){
+		
+		buildConnectInfo();
+		Map<String, Short> conn = connectMap.get(src);
+		if (conn != null) {
+			if (conn.containsKey(des)) return conn.get(des); 
+		}
+
+		return -1;
+		
+	}
 
 	/*
 	public String getNextHop(String src, String dest){

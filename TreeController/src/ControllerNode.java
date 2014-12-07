@@ -85,15 +85,17 @@ public class ControllerNode {
 			String hostname = "";
 			if(tokens[2].equals("ip")){
 				for(int i=0;i<hosts.size();i++){
+					System.out.print("hostip:"+hosts.get(i).ip);
 					if(hosts.get(i).ip.equals(tokens[3])){
-						hostname = hosts.get(i).name;
+						hostname=hosts.get(i).name;
 						break;
 					}
 				}
 				int i = 0;
 				for(;i<gswitches.size();i++){
 					if(gswitches.get(i).name.equals(tokens[1])){
-						result = String.valueOf(topology.getNextHopPort(tokens[1], hostname));
+						result = String.valueOf(topology.getNextHopPortForNonLocal(tokens[1], hostname));
+						System.out.println("getnexthopbetween:"+tokens[1]+" and "+hostname+" is "+result);
 						if(result.equals("-1"))
 							result = "flood";
 						break;

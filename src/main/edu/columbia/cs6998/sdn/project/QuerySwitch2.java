@@ -95,7 +95,7 @@ public class QuerySwitch2 {
 			}
 		}
 		System.out.println("Controller dpid:"+controller.dpid);
-		localSwitchGraph.buildConnectInfo(controller.dpid);
+		localSwitchGraph.buildConnectInfo();
 
 		bufferedRead.close();
 	}

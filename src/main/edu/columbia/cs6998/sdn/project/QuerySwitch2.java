@@ -113,21 +113,20 @@ public class QuerySwitch2 {
 			System.out.println(inputLine);
 			
 			  JSONParser parser=new JSONParser();
-	          controllerInfo coninfo = new controllerInfo();
 			  Object obj=parser.parse(inputLine);
 			  JSONArray array=(JSONArray)obj;
 			  JSONObject[] sw = new JSONObject[array.size()];
 			  for(int i = 0; i < array.size(); ++i){
 				  sw[i] = (JSONObject)array.get(i);
 				  String swid = (String) sw[i].get("dpid");
-				  coninfo.dpid.add(swid);
+				  controller.dpid.add(swid);
 				  JSONArray port = (JSONArray)sw[i].get("ports");
 				  ArrayList<Short> list = new ArrayList<Short>();
 				  for(int j = 1; j < port.size(); ++j){
 					  JSONObject tmp = (JSONObject) port.get(j);
 					  Short portnum =Short.parseShort(tmp.get("portNumber").toString());
 					  list.add(portnum);
-					  coninfo.portOfSwitches.put(swid, list);
+					  controller.portOfSwitches.put(swid, list);
 				  }
 			  }
 		}

@@ -22,7 +22,17 @@ public class Client {
 		String line = "";
 		while(!(line=scanner.nextLine()).equals("exit")){
 			if(line.equals("help")){
-				System.out.print("fuck you");
+				System.out.println("Commands list:");
+				System.out.println("\tadd gswitch <vport1>:<vport2>:...:<vportn> <switchId1>:<switchId2>:...:<switchIdn>");
+				System.out.println("\tremove gswitch <gswitch_name>");
+				System.out.println("\tremove host <host_name>");
+				System.out.println("\tpacketin <gswitch_name> <vport> <src_mac> <src_ip>");
+				System.out.println("\tgetvport <gswitch_name> ip <dest_ip>");
+				System.out.println("\tdump");
+				System.out.println("\tdrawtopology");
+				System.out.println("\trestor <logfile>");
+				System.out.println("\texit");
+				System.out.println("\tshutdown");
 			}else{
 				pw.println(line);
 				pw.flush();

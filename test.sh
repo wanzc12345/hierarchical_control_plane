@@ -21,13 +21,8 @@ if ! [ -d "$1" ] || ! [ -d "$2" ] || ! [ -d "$3" ] || ! [ -d "$4" ]; then
 	exit 1
 fi 
 echo "Cleaning the network environment"
-if [ "$JAVA_HOME" != "" ]; then
-	# This check does not work as $JAVA_HOME is empty string in VM, so left it with != instead of ==
-	echo "Please set JAVA HOME"
-	exit 1
-else
-	JAVA=$JAVA_HOME/bin/java
-fi
+JAVA=$JAVA_HOME/bin/java
+
 
 cd
 cd hierarchical_control_plane/
@@ -35,14 +30,15 @@ HOME_SCRIPT=`pwd`
 echo "*********************************************************"
 sudo mn -c
 echo "*********************************************************"
+
 if [ -d "$1" ]; then
 	cd $1
-	parent="`pwd`/start.class"
+	parent="`pwd`/startTreeController.class"
 	echo "Checking $parent if it exists"
 	if [ -e "$parent" ]; then
 		echo "The Parent controller has started"
 		chmod +x "$HOME_SCRIPT/keep.sh"
-		x-terminal-emulator -e "$HOME_SCRIPT/keep.sh" java "start"
+		x-terminal-emulator -e "$HOME_SCRIPT/keep.sh" java "startTreeController" "config.txt"
 	else
 		echo "The Parent Controller directory is not correct"
 		echo "Please pass the right arguments"

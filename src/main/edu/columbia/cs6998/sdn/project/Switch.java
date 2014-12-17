@@ -247,9 +247,6 @@ implements IFloodlightModule, IOFMessageListener {
 
 	public short translate(IOFSwitch sw, OFPacketIn pi){
 		short inport = pi.getInPort();
-		// OFMatch match = new OFMatch();
-		// match.loadFromPacket(pi.getPacketData(), pi.getInPort());
-		// Long sourceMac = Ethernet.toLong(match.getDataLayerDestination());
 		System.out.println("realtovirtual map:"+realPortToVirtual+" switchid:"+sw.getStringId());
 		short vport = realPortToVirtual.get(sw.getStringId()).get(inport);
 		return vport;
@@ -444,7 +441,7 @@ implements IFloodlightModule, IOFMessageListener {
 
 	private Command processPacketInMessage(IOFSwitch sw, OFPacketIn pi, FloodlightContext cntx) throws ParseException {
 
-		// Added by Adeyemi
+		// Added by AdeyemiA
 		List<Object> socketList = this.getSocketIO(null, this.PARENT_PORT);
 		Socket socket = (Socket) socketList.get(0);
 		BufferedReader in = (BufferedReader) socketList.get(1);
@@ -842,11 +839,9 @@ implements IFloodlightModule, IOFMessageListener {
 			}
 			
 
-		} catch (FileNotFoundException e) {
-			
+		} catch (FileNotFoundException e) {		
 			e.printStackTrace();
-		} catch (IOException e) {
-			
+		} catch (IOException e) {	
 			e.printStackTrace();
 		}
 		return wanted = null;

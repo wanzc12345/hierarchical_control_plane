@@ -245,14 +245,6 @@ implements IFloodlightModule, IOFMessageListener {
 		return (short) (nextport.next - 1);
 	}
 
-	//    public boolean removeVirtualPort(Short vport){
-	//         int num = int) vport;
-	//         if(num > nextport.length - 1) return false;
-	//         nextport.portCollection[num] = nextport.portCollection[nextport.length - 1];
-	//update map! save this method for later
-	//         return true;
-	//    } 
-
 	public short translate(IOFSwitch sw, OFPacketIn pi){
 		short inport = pi.getInPort();
 		// OFMatch match = new OFMatch();
@@ -276,8 +268,6 @@ implements IFloodlightModule, IOFMessageListener {
 	 * @param mac The MAC address of the host to add
 	 * @param portVal The switchport that the host is on
 	 */
-	/* CS6998: fill out the following ????s
-	 */
 	protected void addToPortMap(IOFSwitch sw, long mac, short portVal) {
 		Map<Long, Short> swMap = macToSwitchPortMap.get(sw);
 
@@ -295,8 +285,6 @@ implements IFloodlightModule, IOFMessageListener {
 	 * @param sw The switch to remove the mapping from
 	 * @param mac The MAC address of the host to remove
 	 */
-	/* CS6998: fill out the following ????s
-	 */
 	protected void removeFromPortMap(IOFSwitch sw, long mac) {
 		Map<Long, Short> swMap = macToSwitchPortMap.get(sw);
 		if (swMap != null)
@@ -309,8 +297,6 @@ implements IFloodlightModule, IOFMessageListener {
 	 * @param sw The switch to get the mapping from
 	 * @param mac The MAC address to get
 	 * @return The port the host is on
-	 */
-	/* CS6998: fill out the following method
 	 */
 	public Short getFromPortMap(IOFSwitch sw, long mac) {
 		Map<Long, Short> swMap = macToSwitchPortMap.get(sw);
@@ -527,7 +513,7 @@ implements IFloodlightModule, IOFMessageListener {
 				System.out.println("Response received from the Parent was " + response);
 				System.out.println("-------------------------------------------------------");
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				
 				System.out.println("Socket InputStream: There was a problem reading from the input stream");
 				e.printStackTrace();
 				Switch.isFirstPacket = true;
@@ -612,7 +598,6 @@ implements IFloodlightModule, IOFMessageListener {
 
 				}
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				System.out.println("Socket InputStream: There was a problem reading from the input stream");
 				e.printStackTrace();
 			}
@@ -667,7 +652,6 @@ implements IFloodlightModule, IOFMessageListener {
 			try {
 				return this.processPacketInMessage(sw, (OFPacketIn) msg, cntx);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			/*
@@ -859,10 +843,10 @@ implements IFloodlightModule, IOFMessageListener {
 			
 
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
 		return wanted = null;

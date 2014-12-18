@@ -30,7 +30,24 @@ HOME_SCRIPT=`pwd`
 echo "*********************************************************"
 sudo mn -c
 echo "*********************************************************"
-
+if [ -d "$1" ]; then
+	cd $1
+	parent="`pwd`/startTreeController.class"
+	echo "Checking $parent if it exists"
+	if [ -e "$parent" ]; then
+		echo "The Parent backup controller has started"
+		chmod +x "$HOME_SCRIPT/keep.sh"
+		x-terminal-emulator -e "$HOME_SCRIPT/keep.sh" java "startTreeController" "backup.txt" 
+	else
+		echo "The Parent Backup Controller directory is not correct"
+		echo "Please pass the right arguments"
+		exit 1
+	fi
+	if [ "$?" != 0 ]; then
+		echo "Ensure you have the JAVA_HOME set before running script"
+		exit 1
+	fi
+fi
 if [ -d "$1" ]; then
 	cd $1
 	parent="`pwd`/startTreeController.class"
@@ -51,6 +68,7 @@ if [ -d "$1" ]; then
 fi
 if [ -d "$2" ]; then
 	cd $2
+	rm -f "./resources/logbackup.txt" 
 	HOME_SCRIPT=`pwd`
 	child1="$HOME_SCRIPT/floodlight.sh"
 	if [ -e "$child1" ] && [ -e "$HOME_SCRIPT/keep.sh" ]; then
@@ -65,6 +83,7 @@ if [ -d "$2" ]; then
 fi
 if [ -d "$3" ]; then
 	cd $3
+	rm -f "./resources/logbackup.txt" 
 	HOME_SCRIPT=`pwd`
 	child2="$HOME_SCRIPT/floodlight.sh"	
 	if [ -e "$child2" ] && [ -e "$HOME_SCRIPT/keep.sh" ]; then

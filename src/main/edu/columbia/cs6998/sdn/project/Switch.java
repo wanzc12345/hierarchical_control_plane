@@ -165,7 +165,7 @@ implements IFloodlightModule, IOFMessageListener {
 	
 	protected static Map<String, String> CONFIG_MAP;
 	
-	protected static String PATH_SEPARATOR = "/";
+	protected static String FILE_SEPARATOR = "/";
 
 	protected static String GSWITCH_ID;
 
@@ -512,25 +512,30 @@ implements IFloodlightModule, IOFMessageListener {
 				virtualPort.append(vport);
 				if(index != virtualPorts.length-1) virtualPort.append(";");
 			}
-
-			out.println("add gswitch " + virtualPort.toString() + " " + Id.toString());
-			System.out.println("Command add gswitch sent to the Parent by packet in from switch " + sw.getStringId());
-			String response;
-			try {
-				response = in.readLine();
-				this.GSWITCH_ID = response;
-				Switch.isFirstPacket = false;
-				System.out.println("-------------------------------------------------------");			
-				System.out.println("Gswitch Name received from the Parent is " + this.GSWITCH_ID);
-				System.out.println("-------------------------------------------------------");
-				System.out.println("-------------------------------------------------------");			
-				System.out.println("Response received from the Parent was " + response);
-				System.out.println("-------------------------------------------------------");
-			} catch (IOException e) {
-				
-				System.out.println("Socket InputStream: There was a problem reading from the input stream");
-				e.printStackTrace();
-				Switch.isFirstPacket = true;
+			
+			if(!(new File("." + Switch.FILE_SEPARATOR +"resources" + Switch.FILE_SEPARATOR + "logbackup.txt").exists())) {
+				out.println("add gswitch " + virtualPort.toString() + " " + Id.toString());
+				System.out.println("Command add gswitch sent to the Parent by packet in from switch " + sw.getStringId());
+				String response;
+				try {
+					response = in.readLine();
+					Switch.GSWITCH_ID = response;
+					PrintWriter fileWriter = new PrintWriter("." + Switch.FILE_SEPARATOR +"resources" + Switch.FILE_SEPARATOR + "logbackup.txt", "UTF-8");
+					fileWriter.println("leafcontroller.gswitchid = " + Switch.GSWITCH_ID);
+					fileWriter.close();
+					Switch.isFirstPacket = false;
+					System.out.println("-------------------------------------------------------");			
+					System.out.println("Gswitch Name received from the Parent is " + this.GSWITCH_ID);
+					System.out.println("-------------------------------------------------------");
+					System.out.println("-------------------------------------------------------");			
+					System.out.println("Response received from the Parent was " + response);
+					System.out.println("-------------------------------------------------------");
+				} catch (IOException e) {
+					
+					System.out.println("Socket InputStream: There was a problem reading from the input stream");
+					e.printStackTrace();
+					Switch.isFirstPacket = true;
+				}
 			}
 		}
 
@@ -738,11 +743,14 @@ implements IFloodlightModule, IOFMessageListener {
 		externalSwitchMac = new ArrayList<Long>();
 		switchPortList = new HashMap<String, ArrayList<Long>>();
 		Switch.CONFIG_MAP = new HashMap<String, String>();
-		Switch.PATH_SEPARATOR = System.getProperty("file.separator");
-		Switch.CONFIG_MAP = Switch.readConfigFile("." + Switch.PATH_SEPARATOR + "resources" + Switch.PATH_SEPARATOR);
+		Switch.FILE_SEPARATOR = System.getProperty("file.separator");
+		Switch.CONFIG_MAP = Switch.readConfigFile("." + Switch.FILE_SEPARATOR + "resources" + Switch.FILE_SEPARATOR);
 		while((apiPort = Switch.getConfiguration("net.floodlightcontroller.restserver.RestApiServer.port")) == null);
 		Switch.PARENT_HOST = Switch.getConfiguration("parentcontroller.master.ipaddress");
 		Switch.PARENT_PORT = Integer.parseInt(Switch.getConfiguration("parentcontroller.master.portnumber"));
+		if(Switch.getConfiguration("leafcontroller.gswitchid") != null) {
+			Switch.GSWITCH_ID = Switch.getConfiguration("leafcontroller.gswitchid");
+		}
 		System.out.println("REST API port is : " + apiPort);
 		thisTable = new QuerySwitch2(MAX_MACS_PER_SWITCH, apiPort);
 	}
@@ -891,7 +899,7 @@ implements IFloodlightModule, IOFMessageListener {
 			BufferedReader bufferedRead = null;
 			String line = null;
 			for(Path pathName : dirStream) {
-				if(pathName.toString().endsWith(".properties")) {
+				if(pathName.toString().endsWith(".properties") || pathName.toString().equalsIgnoreCase("logbackup.txt")) {
 					try {
 						bufferedRead = new BufferedReader(new FileReader(pathName.toString()));
 						while( (line = bufferedRead.readLine()) != null) {

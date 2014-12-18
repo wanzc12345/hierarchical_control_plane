@@ -138,7 +138,7 @@ implements IFloodlightModule, IOFMessageListener {
 	public static final long SWITCH_COOKIE = (long) (SWITCH_APP_ID & ((1 << APP_ID_BITS) - 1)) << APP_ID_SHIFT;
 
 	// more flow-mod defaults 
-	protected static final short IDLE_TIMEOUT_DEFAULT = 10;
+	protected static final short IDLE_TIMEOUT_DEFAULT = 2;
 	protected static final short HARD_TIMEOUT_DEFAULT = 0;
 	protected static final short PRIORITY_DEFAULT = 100;
 
@@ -913,7 +913,6 @@ implements IFloodlightModule, IOFMessageListener {
 					finally {
 						try {
 							bufferedRead.close();
-							dirStream.close();
 						} catch (IOException e) {
 							log.error("Ensure the file is not ");
 							System.out.println("Ensure the file exists");

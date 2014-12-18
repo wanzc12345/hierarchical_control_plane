@@ -29,7 +29,7 @@ public class controllerInfo {
 		dpidLong = new ArrayList<Long>();
 		linkBetweenSwitchLong = new  HashMap<Long, Map<Long, Short>>();
 		portOfSwitchesLong = new HashMap<Long, ArrayList<Short>>();
-		
+		dpid.contains("o");
 		
 	}
 	

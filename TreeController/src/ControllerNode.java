@@ -14,6 +14,8 @@ import java.util.List;
 
 
 public class ControllerNode {
+	
+	//properties
 	public String name;
 	public String parentAddress;
 	public String backupAddress;
@@ -26,21 +28,27 @@ public class ControllerNode {
 	public boolean log;
 	public String logfilename;
 	
+	//processing the command
 	public String process(String command){
 		String result = "";
 		String[] tokens = command.split(" ");
 		
 		if(tokens[0].equals("add")){
 			if(tokens[1].equals("gswitch")){
+				
+				//logic for the 'add gswitch'
 				String[] ports = tokens[2].split(";");
 				String[] switchIds = tokens[3].split(";");
 				GSwitch gswitch = new GSwitch("gs"+String.valueOf(gswitches.size()+1), ports.length, ports, switchIds);
+				//add switch id to gswitch's map
 				for(int i=0;i<switchIds.length;i++){
 					switchGswitchMap.put(SidToLong(switchIds[i]), gswitch.name);
 				}
 				gswitches.add(gswitch);
 				topology.addNode(gswitch.name);
 				result = gswitch.name;
+				
+				//send to the parent
 				if(!parentAddress.equals("")){
 					try {
 						Socket socket = new Socket(parentAddress.split(":")[0], Integer.parseInt(parentAddress.split(":")[1]));
@@ -60,6 +68,8 @@ public class ControllerNode {
 			}
 		}else if(tokens[0].equals("remove")){
 			if(tokens[1].equals("gswitch")){
+				
+				//logic for removing gswitch
 				for(int i=0;i<gswitches.size();i++){
 					if(gswitches.get(i).name.equals(tokens[2])){
 						gswitches.remove(i);
@@ -81,6 +91,8 @@ public class ControllerNode {
 				result = "Wrong command! Try help";
 			}
 		}else if(tokens[0].equals("packetin")){
+			
+			//processing the pakcetin message
 			String gswitchName = tokens[1], inPort = tokens[2], srcMacString = tokens[3], srcIp = tokens[4];
 			long srcMac = Long.parseLong(srcMacString);
 			GSwitch gSwitch = null;
@@ -90,6 +102,8 @@ public class ControllerNode {
 					break;
 				}
 			}
+			
+			//if doesn't see this source mac, it's must be a host
 			if(!switchGswitchMap.containsKey(srcMac)){
 				Host newHost = new Host("h"+String.valueOf(hosts.size()+1), srcMac, srcIp);
 				hosts.add(newHost);
@@ -97,11 +111,13 @@ public class ControllerNode {
 				topology.addEdge(gswitchName, newHost.name, Short.parseShort(inPort));
 				gSwitch.addLink(Short.parseShort(inPort), newHost.name);
 				result = "host";
+			//if seen before, it must be a switch
 			}else{
 				gSwitch.addLink(Short.parseShort(inPort), switchGswitchMap.get(srcMac));
 				topology.addEdge(gSwitch.name, switchGswitchMap.get(srcMac), Short.parseShort(inPort));
 				result = "switch";
 			}
+			//send to parent
 			if(!parentAddress.equals("")){
 				try {
 					Socket socket = new Socket(parentAddress.split(":")[0], Integer.parseInt(parentAddress.split(":")[1]));
@@ -117,8 +133,12 @@ public class ControllerNode {
 				
 			}
 		}else if(tokens[0].equals("getvport")){
+			
+			//processing the get vport message
 			String hostname = "";
 			if(tokens[2].equals("ip")){
+				
+				//find the host name by ip
 				for(int i=0;i<hosts.size();i++){
 					//System.out.print("hostip:"+hosts.get(i).ip);
 					if(hosts.get(i).ip.equals(tokens[3])){
@@ -127,6 +147,7 @@ public class ControllerNode {
 					}
 				}
 				int i = 0;
+				//find port to next hop gswitch
 				for(;i<gswitches.size();i++){
 					if(gswitches.get(i).name.equals(tokens[1])){
 						result = String.valueOf(topology.getNextHopPortForNonLocal(tokens[1], hostname));
@@ -136,8 +157,12 @@ public class ControllerNode {
 						break;
 					}
 				}
+				
+				//if doesn't find this next hop, then flood
 				if(i==gswitches.size())
 					result = "flood";
+				
+				//send to the parent
 				if(!parentAddress.equals("")){
 					try {
 						Socket socket = new Socket(parentAddress.split(":")[0], Integer.parseInt(parentAddress.split(":")[1]));
@@ -155,13 +180,16 @@ public class ControllerNode {
 			}else{
 				result = "Wrong command! Try help";
 			}
+		//processing the dump logic
 		}else if(tokens[0].equals("dump")){
 			result = topology.dump();
+		//processing the draw topology
 		}else if(tokens[0].equals("drawtopology")){
 			topology.drawGraph();
 			result = "Ok";
 		}else if(tokens[0].equals("backup")){
-			
+		
+		//processing the restoring from log
 		}else if(tokens[0].equals("restore")){
 			try {
 				BufferedReader br = new BufferedReader(new FileReader(tokens[1]));
@@ -190,6 +218,7 @@ public class ControllerNode {
 		return result;
 	}
 	
+	//thread class for handling new client connection
 	public class ChildThread implements Runnable{
 		private Socket clientSocket;
 		
@@ -199,12 +228,13 @@ public class ControllerNode {
 		
 		@Override
 		public void run() {
-			// TODO Auto-generated method stub
+			//receive 
 			try {
 				PrintWriter pw = new PrintWriter(clientSocket.getOutputStream());
 				BufferedReader br = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 				String line = "";
 				while((line = br.readLine())!=null){
+					//if backup is set, send the command to backup
 					if(!backupAddress.equals("")){
 						Socket socket = new Socket(backupAddress.split(":")[0], Integer.parseInt(backupAddress.split(":")[1]));
 						PrintWriter pw2 = new PrintWriter(socket.getOutputStream());
@@ -214,6 +244,8 @@ public class ControllerNode {
 						socket.close();
 					}
 					System.out.println(line);
+					
+					//if log mode is on, write to the log file
 					if(log){
 						if(line.startsWith("add")||line.startsWith("remove")||line.startsWith("packetin")){
 							try {
@@ -243,6 +275,7 @@ public class ControllerNode {
 		
 	}
 	
+	//construction function for non-parameters
 	public ControllerNode() throws IOException{
 		parentAddress = "";
 		childrenAddresses = new ArrayList<String>();
@@ -256,6 +289,7 @@ public class ControllerNode {
 		backupAddress = "";
 	}
 	
+	//construction function for one parameter-config file name
 	public ControllerNode(String configfilename) throws IOException{
 		parentAddress = "";
 		childrenAddresses = new ArrayList<String>();
@@ -271,6 +305,7 @@ public class ControllerNode {
 		parseConfigFile(configfilename);
 	}
 	
+	//parsing config file
 	private void parseConfigFile(String filename){
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(filename));
@@ -299,6 +334,7 @@ public class ControllerNode {
 		}
 	}
 	
+	//change to switch id to long
 	public long SidToLong(String sid) {
 		if (sid.length() != 23) return -1;
 		int sec = 0;
@@ -320,6 +356,7 @@ public class ControllerNode {
 		return rst;
 	}
 	
+	//change the character to long
 	public long charToLong(char c) {
 		long rst = 10;
 		switch(c) {
@@ -344,6 +381,7 @@ public class ControllerNode {
 		return rst;
 	}
 	
+	//run for the tree controller
 	void run() throws IOException{
 		System.out.println("Tree controller started.");
 		ServerSocket serverSocket = new ServerSocket(port);

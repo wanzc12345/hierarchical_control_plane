@@ -768,7 +768,8 @@ implements IFloodlightModule, IOFMessageListener {
 	 */
 	public List<Object> getSocketIO(InetAddress host, int port) {
 		host = (host != null) ? host : Inet4Address.getLoopbackAddress();
-
+		List<Object> socketDetails = new ArrayList<Object>();
+		
 		Socket commandSocket = null;
 		PrintWriter out = null;
 		BufferedReader in = null;
@@ -782,10 +783,16 @@ implements IFloodlightModule, IOFMessageListener {
 		} catch (IOException e) {
 			System.out.println("Couldn't get I/O for the connection to " +
 					host);
-			System.exit(1);
+			Switch.PARENT_HOST = Switch.getConfiguration("parentcontroller.backup.ipaddress");
+			Switch.PARENT_PORT = Integer.parseInt(Switch.getConfiguration("parentcontroller.backup.portnumber"));
+			try {
+				return getSocketIO(InetAddress.getByName(Switch.PARENT_HOST), Switch.PARENT_PORT);
+			} catch (UnknownHostException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			//System.exit(1);
 		}
-
-		List<Object> socketDetails = new ArrayList<Object>();
 		socketDetails.add(0, commandSocket);	
 		socketDetails.add(1, in);
 		socketDetails.add(2, out);

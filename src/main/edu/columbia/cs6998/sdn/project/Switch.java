@@ -128,6 +128,7 @@ implements IFloodlightModule, IOFMessageListener {
 	HashMap<String, Long> switchIDToPort;
 
 	genPort nextport;
+	//genPort is a class used to get next available virtual port number
 
 	// flow-mod - for use in the cookie
 	public static final int SWITCH_APP_ID = 10;
@@ -201,9 +202,10 @@ implements IFloodlightModule, IOFMessageListener {
 	}
 
 	//project
+	//buildAgent() is invoked right after topology discovery. It would build up maps between physical ports and virtual ports
 	public void buildAgent(){
-		controllerInfo sw = thisTable.controller;
-		for(String sw1 : sw.dpid){
+		controllerInfo sw = thisTable.controller; //get the topology information
+		for(String sw1 : sw.dpid){    //handle every switch in local topology
 			System.out.println("ooooooooooooooooooooooooooooooooooooooooooooooooooooooo");
 			System.out.println("The Switch id is " + sw1);
 			System.out.println("ooooooooooooooooooooooooooooooooooooooooooooooooooooooo");        	  
@@ -219,12 +221,12 @@ implements IFloodlightModule, IOFMessageListener {
 					System.out.println("*******************************************************************");
 				}
 			}
-			for(Short p : list){
-				if(map != null && map.containsValue(p)) {
+			for(Short p : list){             //handle every port of a specific switch
+				if(map != null && map.containsValue(p)) {  //if this port is a inner port, it should not be assigned a virtual port number
 					continue;
 				}
 
-				short tmp = getNextVirtualPort(p);
+				short tmp = getNextVirtualPort(p);    //get the next available virtual port number
 				Map<Short, Short> map1;
 				Map<Short, Short> map2;
 				String s = new String();
@@ -237,7 +239,7 @@ implements IFloodlightModule, IOFMessageListener {
 				}
 				else map2 = new HashMap<Short, Short>();
 
-				map1.put(p, tmp);
+				map1.put(p, tmp);        //put relation between physical port and virtual port into maps
 				map2.put(tmp, p);
 				System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
 				System.out.println("The port number " + p + " for switch " + sw1 + " has virtual port " + tmp + " created for it");
@@ -249,13 +251,13 @@ implements IFloodlightModule, IOFMessageListener {
 			}
 		}
 	}
-
+    // method will be invoked when we need to get the next available virtual port number
 	public short getNextVirtualPort(Short portNum){
 		nextport.portCollection[nextport.next++] = portNum;
 		nextport.length++;
 		return (short) (nextport.next - 1);
 	}
-
+    //method will be invoked when physical port needs to be translated into virtual port
 	public short translate(IOFSwitch sw, OFPacketIn pi){
 		short inport = pi.getInPort();
 		System.out.println("realtovirtual map:"+realPortToVirtual+" switchid:"+sw.getStringId());
@@ -265,7 +267,7 @@ implements IFloodlightModule, IOFMessageListener {
 	public short translate(IOFSwitch sw, short rport){
 		return realPortToVirtual.get(sw.getStringId()).get(rport);
 	}
-
+    //method will be invoked when virtual port needs to be translate into physical port
 	public String translateback(short vport){
 		return vportToRport.get(vport);
 	}
@@ -488,7 +490,7 @@ implements IFloodlightModule, IOFMessageListener {
 			System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 			// get the virtual port for the packet and pass to the Parent Controller
 			createControlTable();
-			buildAgent();
+			buildAgent(); //build maps between physical port numbers and virtual port numbers
 			getSwitchePort(sw);
 
 			List<String> switchIdList = this.thisTable.controller.dpid;

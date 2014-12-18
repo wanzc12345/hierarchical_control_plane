@@ -453,7 +453,13 @@ implements IFloodlightModule, IOFMessageListener {
 	private Command processPacketInMessage(IOFSwitch sw, OFPacketIn pi, FloodlightContext cntx) throws ParseException {
 
 		// Added by AdeyemiA
-		List<Object> socketList = this.getSocketIO(null, this.PARENT_PORT);
+		List<Object> socketList = new ArrayList<Object>();
+		try {
+			socketList = this.getSocketIO(InetAddress.getByName(Switch.PARENT_HOST), Switch.PARENT_PORT);
+		} catch (UnknownHostException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		Socket socket = (Socket) socketList.get(0);
 		BufferedReader in = (BufferedReader) socketList.get(1);
 		PrintWriter out = (PrintWriter) socketList.get(2);
@@ -735,6 +741,8 @@ implements IFloodlightModule, IOFMessageListener {
 		Switch.PATH_SEPARATOR = System.getProperty("file.separator");
 		Switch.CONFIG_MAP = Switch.readConfigFile("." + Switch.PATH_SEPARATOR + "resources" + Switch.PATH_SEPARATOR);
 		while((apiPort = Switch.getConfiguration("net.floodlightcontroller.restserver.RestApiServer.port")) == null);
+		Switch.PARENT_HOST = Switch.getConfiguration("parentcontroller.master.ipaddress");
+		Switch.PARENT_PORT = Integer.parseInt(Switch.getConfiguration("parentcontroller.master.portnumber"));
 		System.out.println("REST API port is : " + apiPort);
 		thisTable = new QuerySwitch2(MAX_MACS_PER_SWITCH, apiPort);
 	}

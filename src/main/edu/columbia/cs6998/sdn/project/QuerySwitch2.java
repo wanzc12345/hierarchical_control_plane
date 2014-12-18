@@ -17,55 +17,45 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-
-
-
-/**
- * @author ubuntu
- *
- */
 public class QuerySwitch2 {
 
+	//Properties
 	int dpid = 0;
-	String restApiPort;
 	int MAX_LINKED_SWITCHES;
+	String restApiPort;	
 	controllerInfo controller = new controllerInfo();
 	Graph localSwitchGraph = new Graph();
-
+	
+	//Constructor
 	public QuerySwitch2(int maxSwitchNum, String apiPort) {
 		restApiPort = apiPort;
 		MAX_LINKED_SWITCHES = maxSwitchNum;
 	}
 
+	//Collect all switch ID by Rest API
 	public void getSwitchID () throws IOException {
 		String httpURL = "http://localhost:" + restApiPort + "/wm/core/controller/switches/json";
 		URL myurlSwitch = new URL(httpURL);
-
 		HttpURLConnection connection = (HttpURLConnection)myurlSwitch.openConnection();
-
 		InputStream inputStream = connection.getInputStream();
 		InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
 		BufferedReader bufferedRead = new BufferedReader(inputStreamReader);
 		String inputLine = null;    
-
-
-
 		if ((inputLine = bufferedRead.readLine()) != null)
 		{
 			String arg[] = inputLine.split("dpid\":\"");      
 			for (int i = 1; i < arg.length; i++) {
 				localSwitchGraph.addNode(arg[i].substring(0, 23));
-
 				controller.dpid.add(arg[i].substring(0, 23));   	
-
 			}
 		}
 		bufferedRead.close();
 	}
 
-	//get all link information of switches
+	//Collect all connection status by Rest API and BFS algorithm
 	public void getSwitchLinkInfo() throws IOException{
 
+		//Collect direct connection status by Rest API 
 		String httpURL = "http://localhost:" + restApiPort + "/wm/topology/links/json";
 		URL myurlSwitchLink = new URL(httpURL);
 		HttpURLConnection connection = (HttpURLConnection)myurlSwitchLink.openConnection();
@@ -73,15 +63,11 @@ public class QuerySwitch2 {
 		InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
 		BufferedReader bufferedRead = new BufferedReader(inputStreamReader);
 		String inputLine = null;
-
 		if ((inputLine = bufferedRead.readLine()) != null)
 		{
-
 			String arg[] = inputLine.split("src-switch\":\"");
 			String port[] = inputLine.split("src-port\":");
-
 			for (int i = 1; i < arg.length; i++) {
-
 				String s[] = port[i].split(",");
 				Map<String, Short> swMap = controller.linkBetweenSwitch.get((String) arg[i].subSequence(0, 23));
 				if (swMap == null) {
@@ -91,16 +77,17 @@ public class QuerySwitch2 {
 				}  	
 				else
 					swMap.put((String) arg[i].subSequence(71, 94), Short.parseShort(s[0]));    
-				localSwitchGraph.addEdge((String)arg[i].subSequence(0, 23), (String) arg[i].subSequence(71, 94), Short.parseShort(s[0]));
+				localSwitchGraph.addEdge((String)arg[i].subSequence(0, 23), (String) arg[i].subSequence(71, 94), 	Short.parseShort(s[0]));
 			}
 		}
 		System.out.println("Controller dpid:"+controller.dpid);
-		localSwitchGraph.buildConnectInfo();
 
+		//Implement BFS algorithm to get routing information
+		localSwitchGraph.buildConnectInfo();
 		bufferedRead.close();
 	}
 
-
+	//Collect all ports information for switches
 	public void getSwitchPortNum() throws IOException, ParseException {
 		String httpURL = "http://localhost:" + restApiPort + "/wm/core/controller/switches/json";
 		URL myurlSwitch = new URL(httpURL);
@@ -111,8 +98,8 @@ public class QuerySwitch2 {
 		String inputLine = null;    
 
 		if ((inputLine = bufferedRead.readLine()) != null) {
-			System.out.println(inputLine);
-          //Extract switch information from Json
+
+          		//Extract switch information from Json
 			JSONParser parser=new JSONParser();
 			Object obj=parser.parse(inputLine);
 			JSONArray array=(JSONArray)obj;
@@ -134,43 +121,33 @@ public class QuerySwitch2 {
 		bufferedRead.close();
 	}	
 
-    //check if controller contains specific switch id
+    	//check if controller contains specific switch id
 	public boolean containsSwitchId(Long sourceMac) {
-
 		for (String sid : controller.dpid) {
 			if (SidToLong(sid) == sourceMac) return true;
 		}
-
 		return false;
 	}
 
-
-
-
-
-    //change switch id of string type into long
+    	//change switch id of string type into long
 	public long SidToLong(String sid) {
 		if (sid.length() != 23) return -1;
 		int sec = 0;
 		int index = 0;
 		long rst = 0;
-
 		while(sec < 8) {
 			int pos = 3 * sec + index;
-
 			rst = rst * 16 + charToLong(sid.charAt(pos));
 			if (index == 0) index++;
 			else if (index == 1) {
 				index = 0;
 				sec++;
 			}
-
 		}
-
 		return rst;
 	}
   
-    //a mapping from char to long
+   	//a mapping from char to long
 	public long charToLong(char c) {
 		long rst = 10;
 		switch(c) {
@@ -190,12 +167,9 @@ public class QuerySwitch2 {
 		case 'd' : rst = 13; break;
 		case 'e' : rst = 14; break;
 		case 'f' : rst = 15; break;
-
 		}
 		return rst;
 	}
-
-
 }
 
 

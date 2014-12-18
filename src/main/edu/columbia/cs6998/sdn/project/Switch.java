@@ -1,8 +1,8 @@
 /**
  *    Copyright 2014, Columbia University.
- *    Homework 1, COMS E6998-10 Fall 2014
+ *    Course Porject, COMS E6998-10 Fall 2014
  *    Software Defined Networking
- *    Originally created by Shangjin Zhang, Columbia University
+ *    Modified by Adeyemi Aladesawe, Yuanhui Luo, Zhen Qiu, Zhicheng Wan, Columbia University
  * 
  *    Licensed under the Apache License, Version 2.0 (the "License"); you may
  *    not use this file except in compliance with the License. You may obtain
@@ -87,52 +87,43 @@ import org.slf4j.LoggerFactory;
 
 public class Switch 
 implements IFloodlightModule, IOFMessageListener {
+
 	protected static Logger log = LoggerFactory.getLogger(Switch.class);
 
 	// Module dependencies
 	protected IFloodlightProviderService floodlightProvider;
 
-	/* CS6998: data structures for the learning switch feature
-    // Stores the learned state for each switch
+	/**
+	 *	the map is used to build up a connection between destination Mac address and  
+	 *	switches' port number
 	 */
 	protected Map<IOFSwitch, Map<Long, Short>> macToSwitchPortMap;
 
-
-	/* CS6998: data structures for the firewall feature
-    // Stores the MAC address of hosts to block: <Macaddr, blockedTime>
-	 */
-	protected Map<Long, Long> blacklist;
-
 	/**
-	 * project:
-	 *     the first short in Map<Short, Short> below is virtual port; Second short
+	 *      the first short in Map<Short, Short> below is virtual port; Second short
 	 *	represents realport number
 	 *	this map is for getting real port numbers with virtual port
 	 *	numbers are known
 	 */
 	Map<String, Map<Short, Short>> virtualPortToReal;
 
-
 	/**
 	 *      the first short in Map<Short, Short> below is realport; second
 	 *	short is virtual port number. this map is for getting virtual
 	 *	port numbers with real port numbers
 	 *	for each controller
-	 * 
 	 */
 	Map<String, Map<Short, Short>> realPortToVirtual;
+
+	// the map reflect virtual port numbers to real port IDs
 	Map<Short, String> vportToRport;
 
-
-	HashMap<Long, String> portToSwitchID;
-	HashMap<String, Long> switchIDToPort;
-
+	// genPort is a class used to get next available virtual port number
 	protected static genPort nextport;
-	//genPort is a class used to get next available virtual port number
-
+	
 	// flow-mod - for use in the cookie
 	public static final int SWITCH_APP_ID = 10;
-	// LOOK! This should probably go in some class that encapsulates
+
 	// the app cookie management
 	public static final int APP_ID_BITS = 12;
 	public static final int APP_ID_SHIFT = (64 - APP_ID_BITS);
@@ -146,47 +137,41 @@ implements IFloodlightModule, IOFMessageListener {
 	// for managing our map sizes
 	protected static final int MAX_MACS_PER_SWITCH  = 1000;    
 
-	// maxinum allowed elephant flow number for one switch
-	protected static final int MAX_ELEPHANT_FLOW_NUMBER = 1;
-
-	// maximum allowed destination number for one host
-	protected static final int MAX_DESTINATION_NUMBER = 3;
-
-	// maxinum allowed transmission rate
-	protected static final int ELEPHANT_FLOW_BAND_WIDTH = 500;
-
 	// time duration the firewall will block each node for
 	protected static final int FIREWALL_BLOCK_TIME_DUR = (10 * 1000);
 
+	// check if controller has received first packet, which will trigger consulting process in Rest API
 	protected static boolean isFirstPacket = true;
 
+	// TCP port number of Tree controller
 	protected static int PARENT_PORT= 12091;
 	
+	// IP port number of Tree controller
 	protected static String PARENT_HOST = "127.0.0.1";
 	
+	// setting up a controller propertise by config file
 	protected static Map<String, String> CONFIG_MAP;
-	
 	protected static String FILE_SEPARATOR = "/";
 
+	// Virtual id of this switch
 	protected static String GSWITCH_ID;
 
+	// map port number to destinations ip address
 	protected Map<Integer, String> hostIp;
 
+	// map switch id to its port numbers
 	protected Map<String, ArrayList<Long>> switchPortList;
 
+	// rest api port number of that controller, will be collected from floodlight.properties
 	protected static String apiPort = null;
 
+	// store a list of external switch mac address
 	protected List<Long> externalSwitchMac;
-
 	protected List<Long> externalHostMac;
 
 	protected static String cName = "Controller1";
 
-	//add by Yuanhui
-	//
-	//controlller information
-
-	//protected controllerInfo InfoTable;
+	// a small process to collect and process local subsets information by Rest API
 	protected QuerySwitch2 thisTable;
 
 	/**
@@ -201,7 +186,6 @@ implements IFloodlightModule, IOFMessageListener {
 		return Switch.cName;
 	}
 
-	//project
 	//buildAgent() is invoked right after topology discovery. It would build up maps between physical ports and virtual ports
 	public void buildAgent(){
 		controllerInfo sw = thisTable.controller; //get the topology information
@@ -252,23 +236,42 @@ implements IFloodlightModule, IOFMessageListener {
 			}
 		}
 	}
-    // method will be invoked when we need to get the next available virtual port number
+
+	/**
+	 * method will be invoked when we need to get the next available virtual port number
+	 * @param portNum The real port number of switch
+	 */
 	public short getNextVirtualPort(Short portNum){
 		nextport.portCollection[nextport.next++] = portNum;
 		nextport.length++;
 		return (short) (nextport.next - 1);
 	}
-    //method will be invoked when physical port needs to be translated into virtual port
+
+	/**
+	 * method will be invoked when physical port needs to be translated into virtual port
+	 * @param sw the switch the packet arrives to
+	 * @param pi incoming packet
+	 */
 	public short translate(IOFSwitch sw, OFPacketIn pi){
 		short inport = pi.getInPort();
 		System.out.println("realtovirtual map:"+realPortToVirtual+" switchid:"+sw.getStringId());
 		short vport = realPortToVirtual.get(sw.getStringId()).get(inport);
 		return vport;
 	}
+
+	/**
+	 * method will be invoked when physical port needs to be translated into virtual port
+	 * @param sw the switch the packet arrives to
+	 * @param rport incoming port number
+	 */
 	public short translate(IOFSwitch sw, short rport){
 		return realPortToVirtual.get(sw.getStringId()).get(rport);
 	}
-    //method will be invoked when virtual port needs to be translate into physical port
+
+	/**
+	 * method will be invoked when virtual port needs to be translate into physical port
+	 * @param vport the virtual port number in switch 
+	 */
 	public String translateback(short vport){
 		return vportToRport.get(vport);
 	}
@@ -290,7 +293,6 @@ implements IFloodlightModule, IOFMessageListener {
 		swMap.put(mac, portVal);
 	}
 
-
 	/**
 	 * Removes a host from the MAC->SwitchPort mapping
 	 * @param sw The switch to remove the mapping from
@@ -301,7 +303,6 @@ implements IFloodlightModule, IOFMessageListener {
 		if (swMap != null)
 			swMap.remove(mac);
 	}
-
 
 	/**
 	 * Get the port that a MAC is associated with
@@ -377,7 +378,6 @@ implements IFloodlightModule, IOFMessageListener {
 					new Object[] { sw, (command == OFFlowMod.OFPFC_DELETE) ? "deleting" : "adding", flowMod });
 		}
 
-		// and write it out
 		try {
 			sw.write(flowMod, null);
 		} catch (IOException e) {
@@ -452,24 +452,19 @@ implements IFloodlightModule, IOFMessageListener {
 	 * @return
 	 * @throws ParseException 
 	 */
-
 	private Command processPacketInMessage(IOFSwitch sw, OFPacketIn pi, FloodlightContext cntx) throws ParseException {
 
-		// Added by AdeyemiA
 		List<Object> socketList = new ArrayList<Object>();
 		try {
 			socketList = this.getSocketIO(InetAddress.getByName(Switch.PARENT_HOST), Switch.PARENT_PORT);
 		} catch (UnknownHostException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		Socket socket = (Socket) socketList.get(0);
 		BufferedReader in = (BufferedReader) socketList.get(1);
 		PrintWriter out = (PrintWriter) socketList.get(2);
-
 		OFMatch match = new OFMatch();
 		match.loadFromPacket(pi.getPacketData(), pi.getInPort());
-
 		Long sourceMac = Ethernet.toLong(match.getDataLayerSource());
 		Long destMac = Ethernet.toLong(match.getDataLayerDestination());        
 		int sourceIp = match.getNetworkSource();
@@ -483,15 +478,17 @@ implements IFloodlightModule, IOFMessageListener {
 			return Command.CONTINUE;
 		}
 
-		if(Switch.isFirstPacket) {
-
-			
+		//controller will learn local topology when first packet come in which means Mininet network has been set up 
+		if(Switch.isFirstPacket) {	
 			System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 			System.out.println("Reading REST JSONS from REST API port " + apiPort);
 			System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+
 			// get the virtual port for the packet and pass to the Parent Controller
 			createControlTable();
-			buildAgent(); //build maps between physical port numbers and virtual port numbers
+
+			//build maps between physical port numbers and virtual port numbers
+			buildAgent(); 
 			getSwitchePort(sw);
 
 			List<String> switchIdList = this.thisTable.controller.dpid;
@@ -544,7 +541,6 @@ implements IFloodlightModule, IOFMessageListener {
 
 		/*
 		 * Get the device type from the parent
-		 * 
 		 */
 		System.out.println("externalSwitchMac:"+externalSwitchMac);
 		System.out.println("hostIp:"+hostIp);
@@ -584,11 +580,13 @@ implements IFloodlightModule, IOFMessageListener {
 			try {
 				response = in.readLine();
 				if(response.equalsIgnoreCase("Flood")) {
+
 					// flood throughout subnet
 					this.writePacketOutForPacketIn(sw, pi, OFPort.OFPP_FLOOD.getValue(), sw.getId());
 					log.info("INFO: Flow Flood sent to the switch " + sw.getStringId());
 
 				} else if(response != null) {
+
 					// forward along path as this is a host
 					String switchIdPort = this.translateback(Short.parseShort(response));
 
@@ -598,7 +596,6 @@ implements IFloodlightModule, IOFMessageListener {
 						match.setWildcards(((Integer)sw.getAttribute(IOFSwitch.PROP_FASTWILDCARDS)).intValue()
 								& ~OFMatch.OFPFW_DL_DST
 								& ~OFMatch.OFPFW_NW_DST_MASK);
-						// CS6998: Fill out the following ????
 						System.out.println("set up match" + Short.parseShort(argSwitchPort[1]));
 						System.out.println("####################################################");
 						System.out.println("Context: {response != null} Writing " + ~OFMatch.OFPFW_DL_DST + " as the destination mac into flow table of switch " + sw.getStringId());
@@ -610,7 +607,6 @@ implements IFloodlightModule, IOFMessageListener {
 						match.setWildcards(((Integer)sw.getAttribute(IOFSwitch.PROP_FASTWILDCARDS)).intValue()
 								& ~OFMatch.OFPFW_DL_DST
 								& ~OFMatch.OFPFW_NW_DST_MASK);
-						// CS6998: Fill out the following ????
 						System.out.println("set up match ----- " + outputPort);
 						System.out.println("####################################################");
 						System.out.println("Context: {after response != null} Writing " + ~OFMatch.OFPFW_DL_DST + " as the destination mac into flow table of switch " + sw.getStringId());
@@ -638,7 +634,6 @@ implements IFloodlightModule, IOFMessageListener {
 			match.setWildcards(((Integer)sw.getAttribute(IOFSwitch.PROP_FASTWILDCARDS)).intValue()
 					& ~OFMatch.OFPFW_DL_DST
 					& ~OFMatch.OFPFW_NW_DST_MASK);
-			// CS6998: Fill out the following ????
 			System.out.println("####################################################");
 			System.out.println("Context: {Else, destIp is in our map} Writing " + ~OFMatch.OFPFW_DL_DST + " as the destination mac into flow table of switch " + sw.getStringId());
 			System.out.println("####################################################");
@@ -653,8 +648,6 @@ implements IFloodlightModule, IOFMessageListener {
 			e.printStackTrace();
 		}
 		out.close();
-
-
 		return Command.CONTINUE;
 	}
 
@@ -664,9 +657,6 @@ implements IFloodlightModule, IOFMessageListener {
 	 * @param flowRemovedMessage The flow removed message.
 	 * @return Whether to continue processing this message or stop.
 	 */
-
-	// IOFMessageListener
-
 	@Override
 	public Command receive(IOFSwitch sw, OFMessage msg, FloodlightContext cntx) {
 		switch (msg.getType()) {
@@ -733,9 +723,6 @@ implements IFloodlightModule, IOFMessageListener {
 			throws FloodlightModuleException {
 		floodlightProvider =
 				context.getServiceImpl(IFloodlightProviderService.class);
-		/* CS6998: Initialize data structures
-		 *  and other system properties
-		 */
 		macToSwitchPortMap = 
 		 new ConcurrentHashMap<IOFSwitch, Map<Long, Short>>();
 		Switch.nextport = new genPort();
@@ -826,15 +813,13 @@ implements IFloodlightModule, IOFMessageListener {
 
 	}
 
-	//modified by Yuanhui
+	// after first packet coming in, controller will learn it local topology 
 	private void createControlTable() throws ParseException {
 		
-		try {
-			
+		try {		
 			thisTable.getSwitchID();
 			System.out.println("info");
-		} catch(IOException e) {}
-		
+		} catch(IOException e) {}	
 		try {
 			System.out.println("get switch 10D");
 			System.out.println("getSwitchPortNum");
@@ -844,12 +829,13 @@ implements IFloodlightModule, IOFMessageListener {
 			System.out.println("get switch link info");
 			thisTable.getSwitchLinkInfo();
 		} catch(IOException e) {}
-		
-		//     buildAgent();
-
-
 	}
-
+	
+	/**
+	 * build up a map from switch id to its hardware address for each port
+	 * @param fileDir - String directory name to search for properties files
+	 * @return
+	 */
 	private void getSwitchePort(IOFSwitch sw) {
 		for (String key : thisTable.controller.portOfSwitches.keySet()) {
 			System.out.println(key);
@@ -863,14 +849,13 @@ implements IFloodlightModule, IOFMessageListener {
 			if (!switchPortList.containsKey(key))
 				switchPortList.put(key, macSet);
 		}
-
 	}
 
+	// read config file to set up controller properties
 	public static String readWantedText(String url, String wanted) {
 		try {
 			FileReader fr = new FileReader(url);
 			BufferedReader br = new BufferedReader(fr);
-
 			String temp = "";
 			while (temp != null) {
 				temp = br.readLine();
@@ -879,8 +864,6 @@ implements IFloodlightModule, IOFMessageListener {
 					return temp;
 				}
 			}
-			
-
 		} catch (FileNotFoundException e) {		
 			e.printStackTrace();
 		} catch (IOException e) {	
@@ -949,13 +932,15 @@ implements IFloodlightModule, IOFMessageListener {
 	}
 }
 
-class genPort{
-	Short [] portCollection;
-	int length;
-	int next;
-	public genPort(){
-		length = 0;
-		next = 0;
-		portCollection = new Short[100];
+	// generate new space for ports for controller
+	class genPort{
+		Short [] portCollection;
+		int length;
+		int next;
+
+		public genPort(){
+			length = 0;
+			next = 0;
+			portCollection = new Short[100];
+		}
 	}
-}

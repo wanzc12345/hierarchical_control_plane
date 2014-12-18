@@ -6,12 +6,16 @@ import java.util.Map;
 import java.io.*;
 
 
+
 public class Graph {
+
+	//properties of graph
 	public int V;
 	public int E;
 	public HashMap<String, Map<String, Short>> adjMap; //e.g "s1"->["1:s2","2:h1"]
 	public HashMap<String, Map<String, Short>> connectMap; 
 
+	//initialize
 	public Graph(){
 		V = 0;
 		E = 0;
@@ -19,6 +23,7 @@ public class Graph {
 		connectMap = new HashMap<String, Map<String, Short>>();
 	}
 
+	//add new node to graph
 	public boolean addNode(String nodeName){
 		if (!adjMap.containsKey(nodeName)) {
 			Map<String, Short> tmp = new HashMap<String, Short>();
@@ -27,7 +32,8 @@ public class Graph {
 		}
 		return true;
 	}
-
+	
+	//delete exist node in graph
 	public boolean deleteNode(String nodeName){
 		if (adjMap.containsKey(nodeName)) {
 			adjMap.remove(nodeName);
@@ -36,20 +42,22 @@ public class Graph {
 		return true;
 	}
 
+	//return all neighbour nodes of a node
 	public Map<String, Short> getAdjacentNodes(String nodeName){
 		return adjMap.get(nodeName);
 	}
 
+	//add new edge in graph
 	public boolean addEdge(String src, String des, short srcPort){
 		if (adjMap.containsKey(src) && adjMap.containsKey(des)) {
 			Map<String, Short> tmp = adjMap.get(src);
 			tmp.put(des, srcPort);
 			E++;
 		}
-
 		return true;
 	}
 
+	//delete existed edge in graph
 	public boolean deleteEdge(String src, String des){
 		if (adjMap.containsKey(src) && adjMap.containsKey(des)) {
 			Map<String, Short> tmp = adjMap.get(src);
@@ -58,14 +66,15 @@ public class Graph {
 			}
 			E--;
 		}
-
 		return true;
 	}
 
+	//check if two node are connected directly
 	public short isConnectedinDirect(String src, String des){
 		return adjMap.get(src).get(des);
 	}
 
+	//Collect and calculate connection status information for local controller
 	public boolean buildConnectInfo() {
 		for (String sw : adjMap.keySet()) {
 			ArrayList<String> visit = new ArrayList<String>();
@@ -73,27 +82,21 @@ public class Graph {
 			Map<String, Short> connect = new HashMap<String, Short>();
 			visit.add(sw);
 			Map<String, Short> map = adjMap.get(sw);
-			//System.out.println("for " + sw);
 			for (String neibour : map.keySet()) {
-				//System.out.println(neibour);
 				if (!visit.contains(neibour)) {
 					neibourList.add(neibour);
 					visit.add(neibour);			
 					connect.put(neibour, map.get(neibour));
-					//System.out.println("put " + neibour + " on " + map.get(neibour));
 				}
-				//connectMap.put(sw, new )
 			}
 			for (String switches : neibourList) {
 				if (!sw.equals(switches))
 				BFS(switches, visit, connect.get(switches), connect); 
 			}
 			connectMap.put(sw, connect);		
-		}
-		
+		}	
 		for (String sw : connectMap.keySet()) {
 			Map<String, Short> map = connectMap.get(sw);
-			//System.out.println(sw);
 			for (String sw2 : connectMap.keySet()) {
 				System.out.println("connect to " + sw2 + " by port " + map.get(sw2));
 			}
@@ -101,28 +104,37 @@ public class Graph {
 		return true;
 	}
 
+	//implement BFS algorithm to calculate connections of all nodes 
 	public void BFS(String sw, ArrayList<String> visit, short port, Map<String, Short> connect) {
 			Map<String, Short> tmp = adjMap.get(sw);
 			for (String s : tmp.keySet()) {
 				if (!visit.contains(s)) {
 					visit.add(s);
 					connect.put(s, port);
-					//System.out.println("put " + s + " on " + port);
 					BFS(s, visit, port, connect);		
 				}
 			}
 	}	
 	
+	/**consult port numbers to controller for a packet with source and destination address in local area. 
+	 * for local controller
+	 * if controller has those information, it return the port number
+	 * else, it will return -1
+	 */
 	public short getNextHopPort(String src, String des) {
 
 		Map<String, Short> conn = connectMap.get(src);
 		if (conn != null) {
 			if (conn.containsKey(des)) return conn.get(des); 
 		}
-
 		return -1;
 	}
 	
+	/**consult port numbers to controller for a packet with source and destination address in global area.
+	 * for parents controller 
+	 * if controller has those information, it return the port number
+	 * else, it will return -1
+	 */
 	public short getNextHopPortForNonLocal(String src, String des){
 		
 		buildConnectInfo();
@@ -130,11 +142,10 @@ public class Graph {
 		if (conn != null) {
 			if (conn.containsKey(des)) return conn.get(des); 
 		}
-
-		return -1;
-		
+		return -1;	
 	}
 
+	//dump topology 
 	public String dump() {
 		String rst = "$";
 		for (String ssw : adjMap.keySet()) {
@@ -146,12 +157,8 @@ public class Graph {
 		return rst;
 	}
 
-	/*
-	public String getNextHop(String src, String dest){
-		return src;
-	}
-	 */
-public boolean drawGraph(){
+	//show out the topology for hierarchical control system 
+	public boolean drawGraph(){
 
 			  try {
 				  String head = "<script src=\"srcjs/sigma.core.js\"></script>" + 

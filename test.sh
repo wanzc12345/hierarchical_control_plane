@@ -3,18 +3,21 @@ echo "*******************************************************"
 echo "This is provided to run multiple instances of"
 echo "Controllers in a hierarchical_control_plane system"
 echo "*******************************************************"
-
+echo
+echo
 echo "*******************************************************"
 echo "Usage: ./test.sh <parent_controller_root_dir>/ <child_controller1_root_dir>/ <child_controller2_root_dir>/ <mininet_dir>/"
+echo "Ensure you Compile the Parent and leafControllers. Run in the root dirs ant for leaf and javac *.java for parent"
 echo "Controllers in a hierachical_control_plane system"
 echo "*******************************************************"
-if [ "$1" = "--help" ] || [ "$1" = "--?" ]; then
-  echo "This script runs the hierarchical_control_plane architecture"
-  exit
-fi
-if [ "$#" -ne 4 ]; then
-	echo "Usage: $0 /Dir /Dir /Dir"
-	exit 1
+echo
+echo
+if [ "$1" = "--help" ] || [ "$1" = "--?" ] || [ "$#" -ne 4 ]; then
+  echo "ooooooooooooooooooooooooooooooooooooooooooooooooooooo"
+  echo "Oops. There's been a problem with the parameters passed"
+  echo "Usage: ./test.sh <parent_root_dir>/ <child1_root_dir>/ <child2_root_dir>/ <mininet_dir>/"
+  echo "ooooooooooooooooooooooooooooooooooooooooooooooooooooo"
+  exit 1
 fi
 if ! [ -d "$1" ] || ! [ -d "$2" ] || ! [ -d "$3" ] || ! [ -d "$4" ]; then
 	echo "Exited with 1"

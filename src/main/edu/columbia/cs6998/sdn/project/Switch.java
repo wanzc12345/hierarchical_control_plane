@@ -127,7 +127,7 @@ implements IFloodlightModule, IOFMessageListener {
 	HashMap<Long, String> portToSwitchID;
 	HashMap<String, Long> switchIDToPort;
 
-	genPort nextport;
+	protected static genPort nextport;
 	//genPort is a class used to get next available virtual port number
 
 	// flow-mod - for use in the cookie
@@ -205,6 +205,7 @@ implements IFloodlightModule, IOFMessageListener {
 	//buildAgent() is invoked right after topology discovery. It would build up maps between physical ports and virtual ports
 	public void buildAgent(){
 		controllerInfo sw = thisTable.controller; //get the topology information
+		System.out.println("sw.dpid.size:"+sw.dpid.size());
 		for(String sw1 : sw.dpid){    //handle every switch in local topology
 			System.out.println("ooooooooooooooooooooooooooooooooooooooooooooooooooooooo");
 			System.out.println("The Switch id is " + sw1);
@@ -525,7 +526,6 @@ implements IFloodlightModule, IOFMessageListener {
 					PrintWriter fileWriter = new PrintWriter("." + Switch.FILE_SEPARATOR +"resources" + Switch.FILE_SEPARATOR + "logbackup.txt", "UTF-8");
 					fileWriter.println("leafcontroller.gswitchid = " + Switch.GSWITCH_ID);
 					fileWriter.close();
-					Switch.isFirstPacket = false;
 					System.out.println("-------------------------------------------------------");			
 					System.out.println("Gswitch Name received from the Parent is " + this.GSWITCH_ID);
 					System.out.println("-------------------------------------------------------");
@@ -539,6 +539,7 @@ implements IFloodlightModule, IOFMessageListener {
 					Switch.isFirstPacket = true;
 				}
 			}
+			Switch.isFirstPacket = false;
 		}
 
 		/*
@@ -737,7 +738,7 @@ implements IFloodlightModule, IOFMessageListener {
 		 */
 		macToSwitchPortMap = 
 		 new ConcurrentHashMap<IOFSwitch, Map<Long, Short>>();
-		nextport = new genPort();
+		Switch.nextport = new genPort();
 		realPortToVirtual = new HashMap<String, Map<Short, Short>>();
 		virtualPortToReal = new HashMap<String, Map<Short, Short>>();
 		vportToRport = new HashMap<Short, String>();
@@ -769,7 +770,7 @@ implements IFloodlightModule, IOFMessageListener {
 
 	/**
 	 * 
-	 * @param host: InetAddress of the Parent Controller, null if localhost
+	 * @param host: InetAddress of the Parent , null if localhost
 	 * @param port: Port Parent Controller listens on
 	 * @return List of objects with the indexes corresponding to
 	 * 	0: Socket

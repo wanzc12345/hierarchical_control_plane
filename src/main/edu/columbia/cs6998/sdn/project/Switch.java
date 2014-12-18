@@ -32,6 +32,7 @@
 package edu.columbia.cs6998.sdn.project;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -41,6 +42,10 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -154,7 +159,13 @@ implements IFloodlightModule, IOFMessageListener {
 
 	protected static boolean isFirstPacket = true;
 
-	protected static final int PARENT_PORT= 12091;
+	protected static int PARENT_PORT= 12091;
+	
+	protected static String PARENT_HOST = "127.0.0.1";
+	
+	protected static Map<String, String> CONFIG_MAP;
+	
+	protected static String PATH_SEPARATOR = "/";
 
 	protected static String GSWITCH_ID;
 
@@ -162,7 +173,7 @@ implements IFloodlightModule, IOFMessageListener {
 
 	protected Map<String, ArrayList<Long>> switchPortList;
 
-	protected static String apiPort = "8080";
+	protected static String apiPort = null;
 
 	protected List<Long> externalSwitchMac;
 
@@ -709,8 +720,9 @@ implements IFloodlightModule, IOFMessageListener {
 		floodlightProvider =
 				context.getServiceImpl(IFloodlightProviderService.class);
 		/* CS6998: Initialize data structures
+		 *  and other system properties
 		 */
-		 macToSwitchPortMap = 
+		macToSwitchPortMap = 
 		 new ConcurrentHashMap<IOFSwitch, Map<Long, Short>>();
 		nextport = new genPort();
 		realPortToVirtual = new HashMap<String, Map<Short, Short>>();
@@ -719,7 +731,11 @@ implements IFloodlightModule, IOFMessageListener {
 		hostIp = new ConcurrentHashMap<Integer, String>();
 		externalSwitchMac = new ArrayList<Long>();
 		switchPortList = new HashMap<String, ArrayList<Long>>();
-		apiPort = readWantedText("./resources/floodlight.properties", "net.floodlightcontroller.restserver.RestApiServer.port").substring(57, 61);
+		Switch.CONFIG_MAP = new HashMap<String, String>();
+		Switch.PATH_SEPARATOR = System.getProperty("file.separator");
+		Switch.CONFIG_MAP = Switch.readConfigFile("." + Switch.PATH_SEPARATOR + "resources" + Switch.PATH_SEPARATOR);
+		while((apiPort = Switch.getConfiguration("net.floodlightcontroller.restserver.RestApiServer.port")) == null);
+		System.out.println("REST API port is : " + apiPort);
 		thisTable = new QuerySwitch2(MAX_MACS_PER_SWITCH, apiPort);
 	}
 
@@ -845,6 +861,66 @@ implements IFloodlightModule, IOFMessageListener {
 			e.printStackTrace();
 		}
 		return wanted = null;
+	}
+	
+	/**
+	 * 
+	 * @param fileDir - String directory name to search for properties files
+	 * @return
+	 */
+	private static Map<String, String> readConfigFile(String fileDir) {
+		Path fileDirPath = FileSystems.getDefault().getPath(fileDir);
+		Map<String, String> tmpMap = new ConcurrentHashMap<String, String>();
+
+		try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(fileDirPath)) {
+			BufferedReader bufferedRead = null;
+			String line = null;
+			for(Path pathName : dirStream) {
+				if(pathName.toString().endsWith(".properties")) {
+					try {
+						bufferedRead = new BufferedReader(new FileReader(pathName.toString()));
+						while( (line = bufferedRead.readLine()) != null) {
+							String[] configSettings = line.split("=");
+							if(configSettings.length == 2) {
+								tmpMap.put(configSettings[0].trim(), configSettings[1].trim());
+								System.out.println(configSettings[0].trim() + " = " + configSettings[1].trim());
+							}
+						}
+					} catch (FileNotFoundException e) {
+						log.error("Ensure the file exists");
+						System.out.println("Ensure the file exists");
+						e.printStackTrace();
+					} catch (IOException e) {
+						log.error("Ensure the file is readable");
+						System.out.println("Ensure the file is readable");				
+						e.printStackTrace();
+					}
+					finally {
+						try {
+							bufferedRead.close();
+							dirStream.close();
+						} catch (IOException e) {
+							log.error("Ensure the file is not ");
+							System.out.println("Ensure the file exists");
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+		} catch (IOException e1) {
+			System.out.println("Ensure the Directory exists and is not closed");
+			e1.printStackTrace();
+		}
+		return tmpMap;
+	}
+	
+	/**
+	 * 
+	 * @param key - The property string to fetch
+	 * @return - The property value to fetch, null if not defined
+	 */
+	public static String getConfiguration(String key) {
+		return (Switch.CONFIG_MAP.containsKey(key)) ? Switch.CONFIG_MAP.get(key) : null;
 	}
 }
 

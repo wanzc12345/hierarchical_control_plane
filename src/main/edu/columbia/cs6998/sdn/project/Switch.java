@@ -901,7 +901,7 @@ implements IFloodlightModule, IOFMessageListener {
 			BufferedReader bufferedRead = null;
 			String line = null;
 			for(Path pathName : dirStream) {
-				if(pathName.toString().endsWith(".properties") || pathName.toString().equalsIgnoreCase("logbackup.txt")) {
+				if(pathName.toString().endsWith(".properties") || pathName.toString().endsWith(".txt")) {
 					try {
 						bufferedRead = new BufferedReader(new FileReader(pathName.toString()));
 						while( (line = bufferedRead.readLine()) != null) {

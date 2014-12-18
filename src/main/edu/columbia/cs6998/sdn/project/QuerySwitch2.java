@@ -112,14 +112,14 @@ public class QuerySwitch2 {
 
 		if ((inputLine = bufferedRead.readLine()) != null) {
 			System.out.println(inputLine);
-
+          //Extract switch information from Json
 			JSONParser parser=new JSONParser();
 			Object obj=parser.parse(inputLine);
 			JSONArray array=(JSONArray)obj;
 			JSONObject[] sw = new JSONObject[array.size()];
 			for(int i = 0; i < array.size(); ++i){
 				sw[i] = (JSONObject)array.get(i);
-				String swid = (String) sw[i].get("dpid");
+				String swid = (String) sw[i].get("dpid"); 
 				//controller.dpid.add(swid);
 				JSONArray port = (JSONArray)sw[i].get("ports");
 				ArrayList<Short> list = new ArrayList<Short>();
@@ -134,7 +134,7 @@ public class QuerySwitch2 {
 		bufferedRead.close();
 	}	
 
-
+    //check if controller contains specific switch id
 	public boolean containsSwitchId(Long sourceMac) {
 
 		for (String sid : controller.dpid) {
@@ -148,7 +148,7 @@ public class QuerySwitch2 {
 
 
 
-
+    //change switch id of string type into long
 	public long SidToLong(String sid) {
 		if (sid.length() != 23) return -1;
 		int sec = 0;
@@ -169,7 +169,8 @@ public class QuerySwitch2 {
 
 		return rst;
 	}
-
+  
+    //a mapping from char to long
 	public long charToLong(char c) {
 		long rst = 10;
 		switch(c) {

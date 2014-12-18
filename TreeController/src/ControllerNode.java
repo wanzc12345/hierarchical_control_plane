@@ -41,6 +41,20 @@ public class ControllerNode {
 				gswitches.add(gswitch);
 				topology.addNode(gswitch.name);
 				result = gswitch.name;
+				if(!parentAddress.equals("")){
+					try {
+						Socket socket = new Socket(parentAddress.split(":")[0], Integer.parseInt(parentAddress.split(":")[1]));
+						PrintWriter pw2 = new PrintWriter(socket.getOutputStream());
+						pw2.println(command);
+						pw2.flush();
+						new BufferedReader(new InputStreamReader(socket.getInputStream())).readLine();
+						socket.close();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+				}
 			}else{
 				result = "Wrong command! Try help";
 			}
@@ -88,6 +102,20 @@ public class ControllerNode {
 				topology.addEdge(gSwitch.name, switchGswitchMap.get(srcMac), Short.parseShort(inPort));
 				result = "switch";
 			}
+			if(!parentAddress.equals("")){
+				try {
+					Socket socket = new Socket(parentAddress.split(":")[0], Integer.parseInt(parentAddress.split(":")[1]));
+					PrintWriter pw2 = new PrintWriter(socket.getOutputStream());
+					pw2.println(command);
+					pw2.flush();
+					new BufferedReader(new InputStreamReader(socket.getInputStream())).readLine();
+					socket.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			}
 		}else if(tokens[0].equals("getvport")){
 			String hostname = "";
 			if(tokens[2].equals("ip")){
@@ -110,6 +138,20 @@ public class ControllerNode {
 				}
 				if(i==gswitches.size())
 					result = "flood";
+				if(!parentAddress.equals("")){
+					try {
+						Socket socket = new Socket(parentAddress.split(":")[0], Integer.parseInt(parentAddress.split(":")[1]));
+						PrintWriter pw2 = new PrintWriter(socket.getOutputStream());
+						pw2.println(command);
+						pw2.flush();
+						new BufferedReader(new InputStreamReader(socket.getInputStream())).readLine();
+						socket.close();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+				}
 			}else{
 				result = "Wrong command! Try help";
 			}

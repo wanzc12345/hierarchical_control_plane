@@ -4,12 +4,19 @@ import java.util.HashSet;
 
 
 public class GSwitch {
+
+	//properties
 	String name;
 	public int portCount;
+
+	//portHostMap store map <port number>-><hostname> 
 	public HashMap<Integer, String> portHostMap;
+
+	//hostPostMap store map <host>-><list of port number>
 	public HashMap<String, ArrayList<Integer>> hostPortsMap;
 	public HashSet<Long> switchIdSet;
 	
+	//initialize
 	public GSwitch(String n, int c, String[] ports, String[] switchIds){
 		name = n;
 		portCount = c;
@@ -40,6 +47,7 @@ public class GSwitch {
 		return hostPortsMap.get(name);
 	}
 	
+	//virtualize switch ID to Long type
 	public long SidToLong(String sid) {
 		if (sid.length() != 23) return -1;
 		int sec = 0;
@@ -47,17 +55,14 @@ public class GSwitch {
 		long rst = 0;
 		
 		while(sec < 8) {
-			int pos = 3 * sec + index;
-			
+			int pos = 3 * sec + index;		
 			rst = rst * 16 + charToLong(sid.charAt(pos));
 			if (index == 0) index++;
 			else if (index == 1) {
 				index = 0;
 				sec++;
-			}
-			
-		}
-		
+			}		
+		}	
 		return rst;
 	}
 	

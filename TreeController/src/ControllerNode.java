@@ -16,6 +16,7 @@ import java.util.List;
 public class ControllerNode {
 	public String name;
 	public String parentAddress;
+	public String backupAddress;
 	public List<String> childrenAddresses;
 	public List<GSwitch> gswitches;
 	public HashMap<Long, String> switchGswitchMap;
@@ -162,6 +163,14 @@ public class ControllerNode {
 				BufferedReader br = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 				String line = "";
 				while((line = br.readLine())!=null){
+					if(!backupAddress.equals("")){
+						Socket socket = new Socket(backupAddress.split(":")[0], Integer.parseInt(backupAddress.split(":")[1]));
+						PrintWriter pw2 = new PrintWriter(socket.getOutputStream());
+						pw2.println(line);
+						pw2.flush();
+						new BufferedReader(new InputStreamReader(socket.getInputStream())).readLine();
+						socket.close();
+					}
 					System.out.println(line);
 					if(log){
 						if(line.startsWith("add")||line.startsWith("remove")||line.startsWith("packetin")){
@@ -202,7 +211,7 @@ public class ControllerNode {
 		port = 12091;
 		log = false;
 		logfilename = "tree.log";
-		
+		backupAddress = "";
 	}
 	
 	public ControllerNode(String configfilename) throws IOException{
@@ -215,13 +224,14 @@ public class ControllerNode {
 		port = 12091;
 		log = false;
 		logfilename = "";
+		backupAddress = "";
 		
 		parseConfigFile(configfilename);
 	}
 	
 	private void parseConfigFile(String filename){
 		try {
-			BufferedReader br = new BufferedReader(new FileReader("config.txt"));
+			BufferedReader br = new BufferedReader(new FileReader(filename));
 			String line = "";
 			while((line=br.readLine())!=null){
 				String[] tokens = line.split("=");
@@ -233,6 +243,8 @@ public class ControllerNode {
 					log = Boolean.valueOf(tokens[1]);
 				}else if(tokens[0].equals("logfilename")){
 					logfilename = tokens[1];
+				}else if(tokens[0].equals("backup")){
+					backupAddress = tokens[1];
 				}
 			}
 			br.close();
